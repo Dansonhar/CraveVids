@@ -22,6 +22,7 @@
   const pretty = f => f.replace(EXT, "").replace(/[-_]+/g, " ").trim().replace(/\b\w/g, c => c.toUpperCase());
 
   let entries = [], active = -1, dragging = false, easing = false;
+  let switching = false, over = 0;         // over = overscroll past an end
   let duration = 0, pos = 0, target = 0, current = 0;   // pos = playhead, 0 → 1
 
   /* ── Boot ────────────────────────────────────────────────────── */
@@ -76,10 +77,11 @@
   }
 
   /* ── Swap in a product ───────────────────────────────────────── */
-  function mount(i) {
+  function mount(i, startPos = 0) {
     const entry = entries[i];
     if (!entry) return;
     active = i;
+    switching = true;                      // ignore input until it has loaded
 
     const meta = META[entry.file] || {};
     $("#scene-title").textContent = meta.title || pretty(entry.file);
@@ -96,8 +98,15 @@
       video.pause();                       // never plays on its own
       if (reduce) video.controls = true;   // reduced motion: give them a player
       stage.classList.remove("swapping");
-      pos = current = target = 0;          // a new product starts sealed
+      // arriving by scrolling down starts sealed; scrolling back up starts
+      // at the far end, so the reverse journey is continuous
+      pos = clamp(startPos, 0, 1);
+      current = target = pos * (duration - 0.01);
+      try { video.currentTime = current; } catch {}
+      switching = false;
+      over = 0;
       apply();
+      hintFor(pos);
     };
     video.src = entry.scrub ? scrubSrc : `videos/${name}`;
     video.load();
@@ -126,16 +135,63 @@
     });
   }
 
-  /* ── Wheel / trackpad → playhead (never the page) ────────────── */
+  /* ── Wheel / trackpad → playhead, and on past the ends ───────── */
   const throwPx = () => clamp((duration || 8) * 420, 1600, 5200);
+
+  // How far past an end you must keep pushing before the next product loads:
+  // about five or six wheel ticks. Enough to be deliberate, not a chore.
+  const OVER = 0.15;
+  // If you stop for a moment at an end, the overscroll resets — so trackpad
+  // momentum from finishing the animation cannot coast you into the next one.
+  let overAt = 0;
+  const OVER_IDLE = 260;
+
+  // Move the playhead by `step` (in 0→1 units). At an end, keep pushing and
+  // it carries you into the next or previous product instead of stopping.
+  function nudge(step) {
+    if (switching || reduce || !duration) return;
+    const now = performance.now();
+    if (now - overAt > OVER_IDLE) over = 0;      // paused at the end → start over
+    overAt = now;
+    const next = pos + step;
+
+    if (next > 1 && pos >= 1) {            // past the end, still scrolling down
+      over = Math.max(0, over) + step;
+      if (over >= OVER && active < entries.length - 1) mount(active + 1, 0);
+      return;
+    }
+    if (next < 0 && pos <= 0) {            // past the start, still scrolling up
+      over = Math.min(0, over) + step;
+      if (over <= -OVER && active > 0) mount(active - 1, 1);   // enter it fully exploded
+      return;
+    }
+
+    over = 0;
+    pos = clamp(next, 0, 1);
+    apply();
+    hintFor(pos);
+  }
+
+  // tell them what another push will do, once they reach an end
+  function hintFor(p) {
+    const el = $("#chain-hint");
+    if (!el) return;
+    const nextT = entries[active + 1] && (META[entries[active + 1].file] || {}).title;
+    const prevT = entries[active - 1] && (META[entries[active - 1].file] || {}).title;
+    let txt = "";
+    if (p >= 0.999 && nextT) txt = `keep scrolling for ${nextT}`;
+    else if (p <= 0.001 && prevT) txt = `scroll up for ${prevT}`;
+    el.textContent = txt;
+    el.classList.toggle("on", !!txt);
+  }
+
+  window.__nudge = nudge;          // used by the keyboard handler below
 
   addEventListener("wheel", e => {
     if (e.target.closest(".picker-list")) return;   // the product list may scroll itself
     e.preventDefault();                             // the page stays put
-    if (reduce || !duration) return;
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
-    pos = clamp(pos + (e.deltaY * unit) / throwPx(), 0, 1);
-    apply();
+    nudge((e.deltaY * unit) / throwPx());
   }, { passive: false });
 
   /* ── Touch swipe → playhead ──────────────────────────────────── */
@@ -149,8 +205,8 @@
       if (!on) return;
       e.preventDefault();                           // no rubber-banding the page
       if (reduce || !duration) return;
-      pos = clamp(p0 + (y0 - e.touches[0].clientY) / (innerHeight * 0.9), 0, 1);
-      apply();
+      const want = p0 + (y0 - e.touches[0].clientY) / (innerHeight * 0.9);
+      nudge(want - pos);
     }, { passive: false });
     addEventListener("touchend", () => { on = false; }, { passive: true });
   }
@@ -222,5 +278,20 @@
     }
   }).observe(document.documentElement, {
     subtree: true, childList: true, attributes: true, attributeFilter: ["style"],
+  });
+})();
+
+/* ── Keys: arrows nudge the playhead, and carry on to the next product
+      at the ends; [ and ] jump product directly ──────────────────── */
+(() => {
+  addEventListener("keydown", e => {
+    if (e.target.closest("input,textarea")) return;
+    const big = e.key === "PageDown" || e.key === "PageUp";
+    const down = e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ";
+    const up   = e.key === "ArrowUp"   || e.key === "ArrowLeft"  || e.key === "PageUp";
+    if (!down && !up) return;
+    e.preventDefault();
+    const step = (big ? 0.25 : 0.06) * (down ? 1 : -1);
+    window.__nudge?.(step);
   });
 })();
