@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Crave Video Presentations</title>
-<meta name="description" content="Product presentations by Crave.">
-<link rel="icon" href="assets/crave-logo.svg">
+<title>CraveAsia Video Presentations</title>
+<meta name="description" content="Video presentations by CraveAsia.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><path d='M13 10l10 6-10 6z' fill='%23fff'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
@@ -13,70 +13,36 @@
 </head>
 <body>
 
-<div class="app">
+<!-- the product fills the screen; everything else floats over it -->
+<main class="stage" id="stage">
+  <video id="scrub" class="stage-video" muted playsinline preload="auto"
+         disablepictureinpicture aria-label="Exploded view"></video>
+  <div class="stage-glow" aria-hidden="true"></div>
+</main>
 
-  <header class="topbar">
-    <div class="brand">
-      <img class="brand-logo" src="assets/crave-logo-white.svg" alt="Crave" width="350" height="100">
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">&#9654;</span>
+    <span class="brand-text">
+      <span class="brand-name">CraveAsia</span>
       <span class="brand-sub">Video Presentations</span>
-    </div>
-    <p class="topbar-title" id="scene-eyebrow">Exploded View</p>
-  </header>
-
-  <main class="scene" id="scene">
-
-    <!-- left: pick a product -->
-    <aside class="picker" id="picker" hidden aria-label="Choose a product">
-      <p class="picker-label">Products</p>
-      <div class="picker-list" id="picker-list"></div>
-    </aside>
-
-    <!-- centre: the product in motion -->
-    <div class="stage-col">
-      <div class="scene-stage" id="stage">
-        <div class="scene-glow" aria-hidden="true"></div>
-        <video id="scrub" class="scene-video" muted playsinline preload="auto"
-               disablepictureinpicture aria-label="Exploded view"></video>
-        <div class="scene-scan" aria-hidden="true"></div>
-      </div>
-
-      <div class="track" id="track" aria-label="Timeline">
-        <div class="track-line"><span class="track-fill" id="track-fill"></span></div>
-        <div class="track-ticks" id="track-ticks"></div>
-      </div>
-
-      <div class="scene-foot">
-        <h1 class="scene-title" id="scene-title"></h1>
-        <p class="hint">Scroll to explode &middot; drag the product to scrub</p>
-      </div>
-    </div>
-
-    <!-- right: chapter, live -->
-    <aside class="caption" id="caption">
-      <span class="caption-idx" id="cap-idx"></span>
-      <p class="caption-title" id="cap-title"></p>
-      <p class="caption-text" id="cap-text"></p>
-      <p class="caption-desc" id="cap-desc"></p>
-    </aside>
-
-    <section class="blank" id="blank" hidden>
-      <h2>No videos yet</h2>
-      <p>Drop your files into the <code>videos/</code> folder, then reload.</p>
-    </section>
-
-  </main>
-
-  <div class="cue" id="cue" aria-hidden="true">
-    <span class="cue-text">Scroll to explode</span>
-    <span class="cue-arrow"></span>
+    </span>
   </div>
+  <h1 class="scene-title" id="scene-title"></h1>
+</header>
 
-  <footer class="foot">
-    <img class="foot-logo" src="assets/crave-logo-white.svg" alt="Crave" width="350" height="100">
-    <span class="dim" id="count"></span>
-  </footer>
+<!-- left: pick a product -->
+<aside class="picker" id="picker" hidden aria-label="Choose a product">
+  <div class="picker-list" id="picker-list"></div>
+</aside>
 
-</div>
+<!-- hairline progress along the bottom edge -->
+<div class="progress" aria-hidden="true"><span class="progress-fill" id="progress-fill"></span></div>
+
+<section class="blank" id="blank" hidden>
+  <h2>No videos yet</h2>
+  <p>Drop your files into the <code>videos/</code> folder, then reload.</p>
+</section>
 
 <script src="videos.js"></script>
 <script src="app.js"></script>

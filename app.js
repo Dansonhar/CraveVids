@@ -2,23 +2,18 @@
    CraveAsia Video Presentations — the wheel drives the product.
 
    The page itself never moves: it is locked to one screen, no
-   scrollbar, no runway. Wheel, trackpad and touch gestures are
-   captured and fed to a virtual playhead (0 → 1) instead of the
-   document, and that playhead IS the video's currentTime. Scroll
-   down and the product comes apart; scroll back and it reassembles.
-
-   The same playhead drives the timeline fill, the live chapter and
-   the active tick. You can also drag the product sideways, pick a
-   chapter, or switch product from the rail on the left.
+   scrollbar. Wheel, trackpad and touch gestures are captured and fed
+   to a virtual playhead (0 → 1) instead of the document, and that
+   playhead IS the video's currentTime. Scroll down and the product
+   comes apart; scroll back and it reassembles. Drag it sideways to
+   scrub by hand, or switch product from the rail on the left.
    ══════════════════════════════════════════════════════════════════ */
 (() => {
   const $ = s => document.querySelector(s);
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  const scene = $("#scene"), stage = $("#stage"), video = $("#scrub"), glow = $(".scene-glow");
-  const caption = $("#caption"), trackFill = $("#track-fill"), ticks = $("#track-ticks");
-  const track = $("#track"), picker = $("#picker"), pickList = $("#picker-list");
-  const cue = $("#cue");
+  const stage = $("#stage"), video = $("#scrub"), glow = $(".stage-glow");
+  const fill = $("#progress-fill"), picker = $("#picker"), pickList = $("#picker-list");
 
   const META = typeof VIDEO_META === "object" && VIDEO_META ? VIDEO_META : {};
   const EXT = /\.(mp4|webm|mov|m4v)$/i;
@@ -26,9 +21,8 @@
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
   const pretty = f => f.replace(EXT, "").replace(/[-_]+/g, " ").trim().replace(/\b\w/g, c => c.toUpperCase());
 
-  let entries = [], active = -1, chapters = [], activeChapter = -1, dragging = false;
-  let pos = 0;                       // the playhead: 0 → 1 through the clip
-  let duration = 0, target = 0, current = 0, easing = false;
+  let entries = [], active = -1, dragging = false, easing = false;
+  let duration = 0, pos = 0, target = 0, current = 0;   // pos = playhead, 0 → 1
 
   /* ── Boot ────────────────────────────────────────────────────── */
   (async function boot() {
@@ -40,10 +34,8 @@
 
     list = list.map(v => (typeof v === "string" ? { file: v, scrub: false } : v))
                .filter(v => v && EXT.test(v.file));
-    // Static hosting (no /api/videos): use what videos.js names. The scrub
-    // copies are committed, so assume they exist — video.onerror falls back
-    // to the original file if one is ever missing.
-    if (!list.length) list = Object.keys(META).filter(f => EXT.test(f)).map(f => ({ file: f, scrub: true }));
+    if (!list.length) list = Object.keys(META).filter(f => EXT.test(f)).map(f => ({ file: f, scrub: false }));
+    if (!list.length) { $("#blank").hidden = false; return; }
 
     // videos.js order wins; anything it doesn't mention follows
     const named = Object.keys(META);
@@ -53,9 +45,6 @@
     });
     entries = list;
 
-    if (!entries.length) { $("#blank").hidden = false; scene.classList.add("is-empty"); return; }
-
-    $("#count").textContent = `${entries.length} product${entries.length > 1 ? "s" : ""}`;
     buildPicker();
     const heroAt = entries.findIndex(v => (META[v.file] || {}).hero);
     mount(heroAt > -1 ? heroAt : 0);
@@ -81,7 +70,6 @@
       const b = e.target.closest(".pick");
       if (b && +b.dataset.i !== active) mount(+b.dataset.i);
     });
-    // thumbnails stay on their first frame — nothing moves without scrolling
   }
 
   /* ── Swap in a product ───────────────────────────────────────── */
@@ -91,26 +79,19 @@
     active = i;
 
     const meta = META[entry.file] || {};
-    chapters = Array.isArray(meta.chapters) ? meta.chapters.slice().sort((a, b) => a.at - b.at) : [];
-    activeChapter = -1;
-
     $("#scene-title").textContent = meta.title || pretty(entry.file);
-    $("#scene-eyebrow").textContent = meta.eyebrow || "Exploded View";
-    $("#cap-desc").textContent = meta.desc || "";
-    caption.classList.remove("on");
-    if (trackFill) trackFill.style.width = "0%";
     stage.classList.add("swapping");
+    if (fill) fill.style.width = "0%";
     pickList?.querySelectorAll(".pick").forEach(b => b.classList.toggle("on", +b.dataset.i === i));
 
     // the all-keyframe copy scrubs smoothly; a normal export snaps to keyframes
     const name = encodeURIComponent(entry.file);
-    const scrubSrc = `videos/scrub/${encodeURIComponent(entry.file.replace(EXT, ".mp4"))}`;
-    video.onerror = () => { if (video.src.includes("/scrub/")) video.src = `videos/${name}`; };
+    const scrubSrc = `videos/.scrub/${encodeURIComponent(entry.file.replace(EXT, ".mp4"))}`;
+    video.onerror = () => { if (video.src.includes("/.scrub/")) video.src = `videos/${name}`; };
     video.onloadedmetadata = () => {
       duration = video.duration || 0;
       video.pause();                       // never plays on its own
       if (reduce) video.controls = true;   // reduced motion: give them a player
-      buildTicks();
       stage.classList.remove("swapping");
       pos = current = target = 0;          // a new product starts sealed
       apply();
@@ -119,37 +100,12 @@
     video.load();
   }
 
-  /* ── Timeline ticks ──────────────────────────────────────────── */
-  function buildTicks() {
-    if (!ticks) return;
-    if (!chapters.length) { ticks.innerHTML = ""; track.hidden = true; return; }
-    track.hidden = false;
-    ticks.innerHTML = chapters.map((c, i) =>
-      `<button class="tick" data-i="${i}" style="left:${c.at * 100}%">
-         <span class="tick-dot"></span><span class="tick-name">${esc(c.title)}</span>
-       </button>`).join("");
-  }
-  ticks?.addEventListener("click", e => {
-    const b = e.target.closest(".tick");
-    if (b) seek(chapters[+b.dataset.i].at);
-  });
-  track?.addEventListener("click", e => {          // click anywhere on the line
-    if (e.target.closest(".tick")) return;
-    const r = track.getBoundingClientRect();
-    seek(clamp((e.clientX - r.left) / r.width, 0, 1));
-  });
-
-  // jumping to a chapter just moves the playhead — the easing glides there
-  const seek = p => { pos = clamp(p, 0, 1); apply(); };
-
-  /* ── The playhead ────────────────────────────────────────────────
-     `pos` is 0 → 1 through the clip. Nothing about it touches the
-     document, so the page cannot move.                              */
+  /* ── The playhead ────────────────────────────────────────────── */
   function apply() {
     if (reduce || !duration) return;
     target = pos * (duration - 0.01);
-    if (cue) cue.style.opacity = String(clamp(1 - pos * 14, 0, 1));
-    paintChapter(pos);
+    if (fill) fill.style.width = `${pos * 100}%`;
+    if (glow) glow.style.opacity = String(0.4 + Math.sin(pos * Math.PI) * 0.5);
     ease();
   }
 
@@ -168,7 +124,6 @@
   }
 
   /* ── Wheel / trackpad → playhead (never the page) ────────────── */
-  // how much wheel travel covers the whole clip — longer clips, longer throw
   const throwPx = () => clamp((duration || 8) * 420, 1600, 5200);
 
   addEventListener("wheel", e => {
@@ -182,57 +137,36 @@
 
   /* ── Touch swipe → playhead ──────────────────────────────────── */
   {
-    let y0 = 0, p0 = 0, active = false;
+    let y0 = 0, p0 = 0, on = false;
     addEventListener("touchstart", e => {
       if (e.target.closest(".picker-list")) return;
-      active = true; y0 = e.touches[0].clientY; p0 = pos;
+      on = true; y0 = e.touches[0].clientY; p0 = pos;
     }, { passive: true });
     addEventListener("touchmove", e => {
-      if (!active) return;
+      if (!on) return;
       e.preventDefault();                           // no rubber-banding the page
       if (reduce || !duration) return;
       pos = clamp(p0 + (y0 - e.touches[0].clientY) / (innerHeight * 0.9), 0, 1);
       apply();
     }, { passive: false });
-    addEventListener("touchend", () => { active = false; }, { passive: true });
+    addEventListener("touchend", () => { on = false; }, { passive: true });
   }
 
   // belt and braces: if anything ever does scroll the document, undo it
   addEventListener("scroll", () => { if (scrollY || scrollX) scrollTo(0, 0); }, { passive: true });
   addEventListener("resize", apply, { passive: true });
 
-  /* ── Scroll position drives the readouts ─────────────────────── */
-  function paintChapter(p) {
-    if (trackFill) trackFill.style.width = `${p * 100}%`;
-    if (glow) glow.style.opacity = String(0.35 + Math.sin(p * Math.PI) * 0.65);
-
-    let idx = -1;
-    for (let i = 0; i < chapters.length; i++) if (p >= chapters[i].at - 0.002) idx = i;
-    if (idx === activeChapter) return;
-    activeChapter = idx;
-    const c = chapters[idx];
-    caption.classList.toggle("on", !!c);
-    if (c) {
-      $("#cap-idx").textContent = `${String(idx + 1).padStart(2, "0")} / ${String(chapters.length).padStart(2, "0")}`;
-      $("#cap-title").textContent = c.title;
-      $("#cap-text").textContent = c.text || "";
-    }
-    ticks?.querySelectorAll(".tick").forEach(t => t.classList.toggle("on", +t.dataset.i === idx));
-  }
-
   /* ── Drag the product to scrub ───────────────────────────────── */
   if (!reduce && stage) {
     let startX = 0, startP = 0;
-
     stage.addEventListener("pointerdown", e => {
-      dragging = true;
-      startX = e.clientX; startP = pos;
+      dragging = true; startX = e.clientX; startP = pos;
       stage.classList.add("dragging");
       stage.setPointerCapture(e.pointerId);
     });
     stage.addEventListener("pointermove", e => {
       if (!dragging) return;
-      // one stage width of drag ≈ the whole clip
+      // one screen width of drag ≈ the whole clip
       pos = clamp(startP + (e.clientX - startX) / stage.offsetWidth, 0, 1);
       apply();
     });
@@ -246,18 +180,13 @@
     stage.addEventListener("pointercancel", end);
   }
 
-  /* ── Keys: step between chapters and products ────────────────── */
+  /* ── Keys ────────────────────────────────────────────────────── */
   addEventListener("keydown", e => {
-    if (e.target.closest("input,textarea")) return;
-    const step = d => {
-      const p = pos;
-      let i = -1;
-      for (let k = 0; k < chapters.length; k++) if (p >= chapters[k].at - 0.002) i = k;
-      const next = clamp(i + d, 0, chapters.length - 1);
-      if (chapters[next]) { e.preventDefault(); seek(chapters[next].at); }
-    };
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") step(1);
-    if (e.key === "ArrowLeft"  || e.key === "ArrowUp")   step(-1);
+    const nudge = d => { e.preventDefault(); pos = clamp(pos + d, 0, 1); apply(); };
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") nudge(0.04);
+    if (e.key === "ArrowLeft"  || e.key === "ArrowUp")   nudge(-0.04);
+    if (e.key === "Home") { e.preventDefault(); pos = 0; apply(); }
+    if (e.key === "End")  { e.preventDefault(); pos = 1; apply(); }
     if (e.key === "[" && entries.length) mount((active - 1 + entries.length) % entries.length);
     if (e.key === "]" && entries.length) mount((active + 1) % entries.length);
   });

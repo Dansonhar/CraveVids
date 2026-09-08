@@ -1,274 +1,142 @@
-/* Crave — Video Presentations. Black UI, scroll-driven scene, footage in full colour. */
+/* CraveAsia Video Presentations — full-bleed product, black & white */
 :root{
   --black:#000; --white:#fff;
   --mid:rgba(255,255,255,.72);
   --dim:rgba(255,255,255,.46);
   --faint:rgba(255,255,255,.22);
 
-  --glass:#101114;      /* solid panel, was frosted glass */
-  --glass-hi:#181A1E;   /* solid raised panel */
+  --glass:rgba(255,255,255,.055);
   --edge:rgba(255,255,255,.14);
   --edge-hi:rgba(255,255,255,.34);
-  --blur:none;   /* glassmorphism removed */
+  --blur:saturate(0%) blur(22px);
   --inner:inset 0 1px 0 rgba(255,255,255,.18);
   --drop:0 18px 50px rgba(0,0,0,.6);
 
-  /* Type: Space Grotesk for display/headings, Inter for everything else.
-     Both fall back to the system stack if the webfonts do not load. */
-  --font:"Inter","Inter var",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-  --font-display:"Space Grotesk","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-  --font-mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --font-display:"Space Grotesk","Inter",-apple-system,BlinkMacSystemFont,sans-serif;
 }
 *{box-sizing:border-box}
-html,body{height:100%; overflow:hidden; overscroll-behavior:none}
+html,body{height:100%; overflow:hidden; overscroll-behavior:none}   /* the page never moves */
 body{
   margin:0; background:var(--black); color:var(--white);
   font-family:var(--font); font-size:15px; line-height:1.55;
   -webkit-font-smoothing:antialiased;
 }
-body::before{                                     /* light for the glass to refract */
-  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:
-    radial-gradient(900px 620px at 12% -8%,  rgba(255,255,255,.16), transparent 60%),
-    radial-gradient(760px 560px at 88% 6%,   rgba(255,255,255,.09), transparent 62%),
-    radial-gradient(1100px 800px at 50% 108%,rgba(255,255,255,.07), transparent 60%);
-}
-body::after{                                      /* grain, stops the gradients banding */
-  content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
-}
-img,video{display:block; max-width:100%}
+video{display:block}
 code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; color:var(--white);
   background:var(--glass); border:1px solid var(--edge); border-radius:5px; padding:1px 6px}
-.dim{color:var(--dim)}
 ::selection{background:var(--white); color:var(--black)}
 
-/* ── Layout: header / scene / footer, exactly one viewport ──── */
-.app{
-  position:fixed; inset:0; z-index:1;
-  display:grid; grid-template-rows:auto 1fr auto; overflow:hidden;
+/* ── The product, edge to edge ──────────────────────────────── */
+.stage{
+  position:fixed; inset:0; z-index:1; overflow:hidden;
+  background:var(--black); cursor:grab; touch-action:none;
+}
+.stage.dragging{cursor:grabbing}
+.stage-video{
+  width:100%; height:100%;
+  object-fit:contain;              /* nothing gets cropped */
+  filter:grayscale(1) contrast(1.06);
+  transition:opacity .35s ease;
+}
+.stage.swapping .stage-video{opacity:.15; transition:opacity .2s ease}
+.stage-glow{
+  position:absolute; inset:0; z-index:-1; pointer-events:none; opacity:.4;
+  background:radial-gradient(62% 62% at 50% 50%, rgba(255,255,255,.16), transparent 72%);
+  filter:blur(60px); transition:opacity .25s linear;
 }
 
-/* The stage is locked to one screen — the wheel drives the clip, not the page. */
-
+/* ── Floating chrome ────────────────────────────────────────── */
 .topbar{
-  position:relative; z-index:20;
-  display:flex; align-items:center; justify-content:space-between; gap:16px;
-  padding:14px 26px; border-bottom:1px solid var(--edge);
-  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
-  
-  box-shadow:var(--inner);
+  position:fixed; top:0; left:0; right:0; z-index:10;
+  display:flex; align-items:center; justify-content:space-between; gap:20px;
+  padding:20px 28px; pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.72),transparent);
 }
-/* Brand: the Crave logo. The supplied artwork is navy #0E3456 (kept intact in
-   crave-logo.svg and used for the favicon); crave-logo-white.svg is the same
-   20 paths with the fill set to white, for this black UI. */
-.brand{display:flex; align-items:center; gap:14px; min-width:0}
-.brand-logo{width:auto; height:26px; flex:none; display:block}   /* 350x100 artwork, scaled by height */
-.brand-sub{
-  padding-left:14px; border-left:1px solid var(--edge);
-  white-space:nowrap;
+.brand{display:flex; align-items:center; gap:12px}
+.brand-mark{
+  display:grid; place-items:center; width:30px; height:30px; flex:none; font-size:10px;
+  background:rgba(255,255,255,.10); border:1px solid var(--edge); border-radius:9px;
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--inner);
 }
-.foot-logo{width:auto; height:15px; opacity:.62; display:block}
-.brand-sub{font-size:11.5px; color:var(--dim); text-transform:uppercase; letter-spacing:.12em}
-.topbar-title{margin:0; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim)}
-
-.scene{
-  position:relative; min-height:0; overflow:hidden;
-  display:grid; align-items:center; gap:26px;
-  grid-template-columns:150px minmax(0,1fr) 290px;
-  padding:22px 26px;
+.brand-text{display:flex; flex-direction:column; line-height:1.2}
+.brand-name{font-size:14px; font-weight:600; letter-spacing:-.01em}
+.brand-sub{font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.16em}
+.scene-title{
+  margin:0; font-family:var(--font-display); font-size:clamp(15px,1.5vw,20px);
+  font-weight:600; letter-spacing:-.01em; text-align:right;
+  text-shadow:0 2px 30px rgba(0,0,0,.9);
 }
-.scene.is-empty{grid-template-columns:1fr; place-items:center}
 
-/* ── Centre column: the moving device ───────────────────────── */
-.stage-col{min-width:0; display:flex; flex-direction:column; gap:14px; align-items:center}
-
-.scene-stage{
-  position:relative; width:100%; flex:1 1 auto; min-height:0;
-  border-radius:22px; overflow:hidden;
-  background:rgba(255,255,255,.03); border:1px solid var(--edge);
-  box-shadow:var(--inner), 0 50px 120px rgba(0,0,0,.85);
-  touch-action:none; cursor:grab;
-}
-.scene-stage.dragging{cursor:grabbing}
-/* Never filter the footage — it must show the original colour as shot. */
-.scene-video{width:100%; height:100%; object-fit:cover;
-  transition:opacity .35s ease}
-.scene-stage.swapping .scene-video{opacity:.2; transition:opacity .2s ease}
-
-.scene-glow{
-  position:absolute; inset:-22% -12%; z-index:0; pointer-events:none; opacity:.35;
-  background:radial-gradient(58% 58% at 50% 50%, rgba(255,255,255,.30), transparent 70%);
-  filter:blur(46px); transition:opacity .25s linear;
-}
-/* removed: this sat over the video in overlay blend and tinted it */
-.scene-scan{display:none}
-
-
-/* ── Timeline ───────────────────────────────────────────────── */
-.track{position:relative; width:100%; flex:none; padding-top:4px; cursor:pointer}
-.track[hidden]{display:none}
-.track-line{position:relative; height:2px; background:rgba(255,255,255,.14); border-radius:2px}
-.track-fill{display:block; height:100%; width:0; background:var(--white);
-  border-radius:2px; box-shadow:0 0 14px rgba(255,255,255,.6)}
-.track-ticks{position:relative; height:26px}
-.tick{
-  position:absolute; top:0; transform:translateX(-50%);
-  display:flex; flex-direction:column; align-items:center; gap:5px;
-  padding:0; font:inherit; background:none; border:0; cursor:pointer; color:var(--faint);
-  transition:color .2s ease;
-}
-.tick-dot{width:5px; height:5px; border-radius:50%; background:currentColor; margin-top:-9px}
-.tick-name{font-size:10px; letter-spacing:.12em; text-transform:uppercase; white-space:nowrap}
-.tick:hover{color:var(--mid)}
-.tick.on{color:var(--white); text-shadow:0 0 18px rgba(255,255,255,.6)}
-
-.scene-foot{width:100%; display:flex; align-items:baseline; justify-content:space-between; gap:18px; flex:none}
-.scene-title{margin:0; font-size:clamp(20px,2.6vw,34px); font-weight:650; letter-spacing:-.025em;
-  text-shadow:0 0 40px rgba(255,255,255,.3)}
-.hint{margin:0; font-size:11px; letter-spacing:.1em; color:var(--faint); white-space:nowrap}
-
-/* ── Left rail: pick a device ───────────────────────────────── */
+/* ── Left rail: pick a product ──────────────────────────────── */
 .picker{
-  align-self:center; display:flex; flex-direction:column; gap:10px;
-  padding:14px 12px; border-radius:18px;
+  position:fixed; left:20px; top:50%; transform:translateY(-50%); z-index:12;
+  width:112px; max-height:76vh; display:flex; flex-direction:column;
+  padding:10px; border-radius:16px;
   background:var(--glass); border:1px solid var(--edge);
-  
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
   box-shadow:var(--inner), var(--drop);
+  opacity:.42; transition:opacity .25s ease;
 }
+.picker:hover,.picker:focus-within{opacity:1}     /* out of the way until wanted */
 .picker[hidden]{display:none}
-.picker-label{margin:0 0 2px; padding-left:2px; flex:none;
-  font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--dim)}
-/* A plain list of devices: it does not scroll and nothing here drags. */
-.picker-list{display:flex; flex-direction:column; gap:10px; overflow:visible}
+.picker-list{
+  display:flex; flex-direction:column; gap:9px; overflow-y:auto; overscroll-behavior:contain;
+  scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.25) transparent;
+}
+.picker-list::-webkit-scrollbar{width:3px}
+.picker-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25); border-radius:3px}
 
-.pick{display:block; width:100%; padding:0; cursor:pointer; text-align:left; color:inherit; font:inherit;
-  background:none; border:0; border-radius:11px; opacity:.62;
-  transition:opacity .2s ease}
-.pick:hover,.pick:focus-visible{opacity:1; outline:none}
+.pick{
+  display:block; width:100%; padding:0; cursor:pointer; text-align:left; color:inherit; font:inherit;
+  background:none; border:0; border-radius:10px; opacity:.6;
+  transition:opacity .2s ease, transform .2s ease;
+}
+.pick:hover,.pick:focus-visible{opacity:1; transform:translateX(2px); outline:none}
 .pick.on{opacity:1}
-.pick-shot{position:relative; display:block; aspect-ratio:16/9; overflow:hidden; border-radius:11px;
+.pick-shot{
+  position:relative; display:block; aspect-ratio:16/9; overflow:hidden; border-radius:10px;
   background:rgba(0,0,0,.6); border:1px solid var(--edge); box-shadow:var(--inner);
-  transition:border-color .2s ease, box-shadow .2s ease}
-.pick-shot video{width:100%; height:100%; object-fit:cover}
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.pick-shot video{width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.05)}
 .pick:hover .pick-shot{border-color:var(--edge-hi)}
 .pick.on .pick-shot{border-color:var(--white);
-  box-shadow:var(--inner), 0 0 0 1px rgba(255,255,255,.5), 0 0 22px rgba(255,255,255,.25)}
-.pick-name{display:block; margin-top:6px; font-size:11px; line-height:1.35; color:var(--mid);
-  white-space:normal; overflow-wrap:anywhere}
+  box-shadow:var(--inner), 0 0 0 1px rgba(255,255,255,.5), 0 0 20px rgba(255,255,255,.22)}
+.pick-name{
+  display:block; margin-top:5px; font-size:10px; line-height:1.3; color:var(--mid);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
 .pick.on .pick-name{color:var(--white)}
 
-/* ── Right: live chapter ────────────────────────────────────── */
-.caption{
-  align-self:center; padding:20px 22px; border-radius:18px;
-  background:var(--glass); border:1px solid var(--edge);
-  
-  box-shadow:var(--inner), var(--drop);
-  opacity:0; transform:translateX(10px); transition:opacity .35s ease, transform .35s ease;
-}
-.caption.on{opacity:1; transform:none}
-.caption-idx{display:block; font-size:11px; letter-spacing:.2em; color:var(--dim);
-  font-variant-numeric:tabular-nums}
-.caption-title{margin:10px 0 0; font-size:19px; font-weight:650; letter-spacing:-.02em;
-  text-shadow:0 0 26px rgba(255,255,255,.3)}
-.caption-text{margin:8px 0 0; font-size:13.5px; line-height:1.55; color:var(--mid)}
-.caption-desc{margin:16px 0 0; padding-top:14px; font-size:12px; line-height:1.5; color:var(--faint);
-  border-top:1px solid rgba(255,255,255,.1)}
-.caption-desc:empty{display:none}
+/* ── Hairline progress, bottom edge ─────────────────────────── */
+.progress{position:fixed; left:0; right:0; bottom:0; z-index:11; height:2px; background:rgba(255,255,255,.10)}
+.progress-fill{display:block; height:100%; width:0; background:var(--white);
+  box-shadow:0 0 12px rgba(255,255,255,.6)}
 
 /* ── Empty state ────────────────────────────────────────────── */
-.blank{grid-column:1/-1; justify-self:center; text-align:center; padding:56px 40px; border-radius:18px;
+.blank{
+  position:fixed; inset:0; z-index:14; margin:auto; width:max-content; height:max-content;
+  text-align:center; padding:48px 40px; border-radius:18px;
   background:var(--glass); border:1px dashed var(--edge);
-   box-shadow:var(--inner)}
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--inner);
+}
 .blank[hidden]{display:none}
-.blank h2{margin:0 0 10px; font-size:23px; font-weight:600; letter-spacing:-.02em}
+.blank h2{margin:0 0 10px; font-family:var(--font-display); font-size:22px; font-weight:600}
 .blank p{margin:0; color:var(--mid)}
 
-.foot{display:flex; justify-content:space-between; gap:16px; padding:12px 26px;
-  font-size:12px; color:var(--dim); border-top:1px solid var(--edge);
-  background:linear-gradient(0deg,rgba(255,255,255,.05),transparent);
-  }
-
-/* ── Fallbacks & narrow screens ─────────────────────────────── */
-@media (max-width:1180px){
-  .scene{grid-template-columns:128px minmax(0,1fr) 250px; gap:18px; padding:18px}
+/* ── Fallbacks & small screens ──────────────────────────────── */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .picker,.blank{background:rgba(18,18,18,.94)}
 }
-@media (max-width:900px){
-  .scene{grid-template-columns:112px minmax(0,1fr); gap:14px}
-  .caption{display:none}                   /* chapter lives on the timeline instead */
-  .hint{display:none}
-}
-@media (max-width:640px){
-  .topbar-title{display:none}
-  .scene{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto; padding:14px}
-  .picker{flex-direction:row; align-items:center; padding:10px; max-height:none}
-  .picker-label{display:none}
-  .picker-list{flex-direction:row; flex-wrap:wrap; overflow:visible; width:100%}
-  .pick{width:88px; flex:none}
-  .tick-name{display:none}
-}
-@media (prefers-reduced-motion:reduce){
-  *{transition:none!important}
-  }
-
-
-/* ══════════════════════════════════════════════════════════════
-   TYPOGRAPHY — display face on headings, Inter everywhere else
-   ══════════════════════════════════════════════════════════════ */
-body{font-family:var(--font); font-feature-settings:"kern" 1,"liga" 1,"cv02" 1,"cv11" 1;
-  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}
-
-h1,h2,h3,h4,
-.scene-title,.caption-title,.blank h2,.modal-meta h2{
-  font-family:var(--font-display);
-  font-weight:700;
-  letter-spacing:-.03em;
-  font-feature-settings:"ss01" 1,"kern" 1;
-}
-
-.scene-title{font-size:clamp(26px,3.4vw,46px); line-height:1.02; text-wrap:balance}
-.caption-title{font-size:16px; font-weight:600; letter-spacing:-.015em; line-height:1.25}
-.caption-text{font-size:13px; line-height:1.62; letter-spacing:.002em; color:var(--mid)}
-
-/* small caps-ish labels: the one place letterspacing should be wide */
-.brand-sub,.topbar-title,.scene-eyebrow,.picker-label,.rail-tick,.cue-text,.drag-hint{
-  font-family:var(--font);
-  font-weight:600;
-  text-transform:uppercase;
-  letter-spacing:.2em;
-  font-variant-numeric:tabular-nums;
-}
-
-.caption-idx,.pos,.card-file,.foot{font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1}
-.caption-idx{font-family:var(--font-mono); font-weight:600; letter-spacing:0}
-.card-file{font-family:var(--font-mono); letter-spacing:0}
-code{font-family:var(--font-mono)}
-
-button,input,select,textarea{font-family:inherit}
-
-
-/* scroll cue — fades out as soon as you start */
-.cue{
-  position:fixed; left:50%; bottom:26px; z-index:15; transform:translateX(-50%);
-  display:flex; flex-direction:column; align-items:center; gap:8px;
-  pointer-events:none; transition:opacity .35s ease;
-}
-.cue-text{font-size:9.5px; letter-spacing:.28em; text-transform:uppercase; color:var(--dim)}
-.cue-arrow{
-  width:1px; height:26px;
-  background:linear-gradient(180deg,var(--white),transparent);
-  animation:cueDrop 1.9s cubic-bezier(.22,.61,.36,1) infinite;
-}
-@keyframes cueDrop{0%{transform:scaleY(.2); opacity:0}40%{opacity:1}100%{transform:scaleY(1); opacity:0}}
-
-@media (prefers-reduced-motion:reduce){
-      .cue{display:none}
-}
-
-/* device names: readable sentence case, not spaced-out caps that get cut off */
-.pick-name{font-family:var(--font); font-weight:500; letter-spacing:.01em; text-transform:none}
-
 @media (max-width:760px){
-  .brand-logo{height:22px}
-  .brand-sub{display:none}          /* logo alone on small screens */
+  .topbar{padding:14px 16px}
+  .brand-sub{display:none}
+  .picker{
+    left:12px; right:12px; top:auto; bottom:16px; transform:none;
+    width:auto; max-height:none; flex-direction:row; padding:8px; opacity:1;
+  }
+  .picker-list{flex-direction:row; overflow-x:auto; overflow-y:hidden; width:100%}
+  .pick{width:82px; flex:none}
 }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
