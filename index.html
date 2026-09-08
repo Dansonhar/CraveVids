@@ -4,78 +4,59 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CraveAsia Video Presentations</title>
-<meta name="description" content="Interactive hardware showroom — tap any product to watch its exploded-view video.">
-<link rel="icon" href="assets/qbotlogo.svg">
+<meta name="description" content="Video presentations by CraveAsia.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><path d='M13 10l10 6-10 6z' fill='%23fff'/></svg>">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header class="topbar">
-  <div class="brand">
-    <img src="assets/qbotlogo.svg" alt="" class="brand-mark">
-    <div class="brand-text">
+  <a class="brand" href="./">
+    <span class="brand-mark" aria-hidden="true">&#9654;</span>
+    <span class="brand-text">
       <span class="brand-name">CraveAsia</span>
       <span class="brand-sub">Video Presentations</span>
-    </div>
-  </div>
-  <div class="topbar-actions">
-    <input id="search" type="search" placeholder="Search hardware…" aria-label="Search hardware" autocomplete="off">
-  </div>
+    </span>
+  </a>
+  <input id="search" type="search" placeholder="Search" aria-label="Search videos" autocomplete="off">
 </header>
-
-<section class="hero">
-  <img src="assets/hero-hardware.jpg" alt="" class="hero-bg">
-  <div class="hero-inner">
-    <p class="eyebrow">Interactive Hardware Showroom</p>
-    <h1>See every product<br><span class="grad">come apart.</span></h1>
-    <p class="lede">Press on any piece of hardware to play its exploded-view video — every module, port and mount, layer by layer.</p>
-    <a class="cta" href="#catalog">Browse the hardware</a>
-  </div>
-</section>
-
-<nav class="filters" id="catalog" aria-label="Category filters">
-  <div class="filters-inner" id="filters"></div>
-</nav>
 
 <main class="wrap">
   <div class="grid" id="grid"></div>
-  <p class="empty" id="empty" hidden>No hardware matches that search.</p>
+
+  <p class="empty" id="empty" hidden>Nothing matches that search.</p>
+
+  <section class="blank" id="blank" hidden>
+    <h1>No videos yet</h1>
+    <p>Drop your files into the <code>videos/</code> folder, then reload this page.</p>
+    <p class="dim">.mp4 · .webm · .mov · .m4v</p>
+  </section>
 </main>
 
 <footer class="foot">
-  <span>CraveAsia · Video Presentations</span>
-  <span class="foot-dim">Drop exploded-view files into <code>videos/</code> — see <code>README.md</code></span>
+  <span>CraveAsia</span>
+  <span class="dim" id="count"></span>
 </footer>
 
-<!-- Player -->
 <div class="modal" id="modal" hidden>
   <div class="modal-backdrop" data-close></div>
   <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="m-title">
     <button class="modal-close" data-close aria-label="Close">&times;</button>
-    <div class="stage">
-      <video id="player" playsinline controls preload="metadata"></video>
-      <div class="missing" id="missing" hidden>
-        <div class="missing-icon">▶</div>
-        <p class="missing-title">Exploded-view video not added yet</p>
-        <p class="missing-body">Save the file as<br><code id="missing-file"></code><br>inside the <code>videos/</code> folder and reload.</p>
-      </div>
-    </div>
+    <div class="stage"><video id="player" playsinline controls preload="metadata"></video></div>
     <div class="modal-meta">
-      <div>
-        <p class="modal-cat" id="m-cat"></p>
-        <h2 id="m-title"></h2>
-        <p class="modal-desc" id="m-desc"></p>
-      </div>
-      <ul class="specs" id="m-specs"></ul>
+      <h2 id="m-title"></h2>
+      <p class="modal-desc" id="m-desc"></p>
+      <ul class="notes" id="m-notes"></ul>
     </div>
     <div class="modal-nav">
       <button id="prev">&larr; Previous</button>
+      <span class="pos" id="m-pos"></span>
       <button id="next">Next &rarr;</button>
     </div>
   </div>
 </div>
 
-<script src="hardware.js"></script>
+<script src="videos.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -1,0 +1,2 @@
+Drop video files here (.mp4 .webm .mov .m4v) — they appear on the page automatically.
+Descriptions are optional, see ../videos.js

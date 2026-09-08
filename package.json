@@ -1,0 +1,15 @@
+{
+  "name": "craveasia-video-presentations",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CraveAsia Video Presentations — a black-and-white page that plays the videos in videos/.",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "serve": "NO_RELOAD=1 NO_OPEN=1 node server.js",
+    "check": "node scripts/check-videos.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
