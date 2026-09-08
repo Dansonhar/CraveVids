@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CraveAsia Video Presentations</title>
-<meta name="description" content="Video presentations by CraveAsia.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><path d='M13 10l10 6-10 6z' fill='%23fff'/></svg>">
+<title>Crave Video Presentations</title>
+<meta name="description" content="Product presentations by Crave.">
+<link rel="icon" href="assets/crave-logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
@@ -17,24 +17,21 @@
 
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark" aria-hidden="true">&#9654;</span>
-      <span class="brand-text">
-        <span class="brand-name">CraveAsia</span>
-        <span class="brand-sub">Video Presentations</span>
-      </span>
+      <img class="brand-logo" src="assets/crave-logo-white.svg" alt="Crave" width="350" height="100">
+      <span class="brand-sub">Video Presentations</span>
     </div>
     <p class="topbar-title" id="scene-eyebrow">Exploded View</p>
   </header>
 
   <main class="scene" id="scene">
 
-    <!-- left: pick a device -->
-    <aside class="picker" id="picker" hidden aria-label="Choose a video">
-      <p class="picker-label">Devices</p>
+    <!-- left: pick a product -->
+    <aside class="picker" id="picker" hidden aria-label="Choose a product">
+      <p class="picker-label">Products</p>
       <div class="picker-list" id="picker-list"></div>
     </aside>
 
-    <!-- centre: the moving device -->
+    <!-- centre: the product in motion -->
     <div class="stage-col">
       <div class="scene-stage" id="stage">
         <div class="scene-glow" aria-hidden="true"></div>
@@ -50,7 +47,7 @@
 
       <div class="scene-foot">
         <h1 class="scene-title" id="scene-title"></h1>
-        <p class="hint">Scroll to explode &middot; drag the device to scrub</p>
+        <p class="hint">Scroll to explode &middot; drag the product to scrub</p>
       </div>
     </div>
 
@@ -75,7 +72,7 @@
   </div>
 
   <footer class="foot">
-    <span>CraveAsia</span>
+    <img class="foot-logo" src="assets/crave-logo-white.svg" alt="Crave" width="350" height="100">
     <span class="dim" id="count"></span>
   </footer>
 

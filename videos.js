@@ -45,6 +45,29 @@ const VIDEO_META = {
     ],
   },
 
+  "0908 .mp4": {
+    eyebrow: "Exploded View",
+    title: "Smartphone",
+    desc: "A phone opened out into display, logic board, battery and rear housing, with macro cut-ins on the camera stack and charging coil.",
+    notes: [
+      "This clip cuts to close-ups partway through — the chapters follow those cuts",
+    ],
+    // 12.2s clip. Wide explode holds ~4.4-5.9s, then macro cut-ins on the
+    // camera, board and charging coil, back to wide at ~8.9s, closed by ~11s.
+    chapters: [
+      { at: 0.00, title: "Edge",       text: "Opening macro along the frame — buttons, antenna band, speaker grille." },
+      { at: 0.11, title: "Whole",      text: "The finished phone, screen dark, floating free." },
+      { at: 0.24, title: "Display",    text: "The screen lifts away and the internals come into view." },
+      { at: 0.36, title: "Exploded",   text: "Three layers apart: display, board and battery, rear housing." },
+      { at: 0.48, title: "Camera",     text: "Macro on the camera module — the lens elements separated out." },
+      { at: 0.57, title: "Logic board",text: "Macro on the board: processor, connectors and shielding." },
+      { at: 0.65, title: "Coil",       text: "The copper wireless-charging coil behind the rear housing." },
+      { at: 0.73, title: "Full stack", text: "Back to the wide view, every layer suspended in order." },
+      { at: 0.83, title: "Closing",    text: "The layers draw back together into the housing." },
+      { at: 0.91, title: "Assembled",  text: "Whole again — the finished phone." },
+    ],
+  },
+
   "hardisk.mp4": {
     eyebrow: "Exploded View",
     title: "Hard Disk Drive",

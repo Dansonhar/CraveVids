@@ -1,15 +1,15 @@
 /* ══════════════════════════════════════════════════════════════════
-   CraveAsia Video Presentations — the wheel drives the device.
+   CraveAsia Video Presentations — the wheel drives the product.
 
    The page itself never moves: it is locked to one screen, no
    scrollbar, no runway. Wheel, trackpad and touch gestures are
    captured and fed to a virtual playhead (0 → 1) instead of the
    document, and that playhead IS the video's currentTime. Scroll
-   down and the device comes apart; scroll back and it reassembles.
+   down and the product comes apart; scroll back and it reassembles.
 
    The same playhead drives the timeline fill, the live chapter and
-   the active tick. You can also drag the device sideways, pick a
-   chapter, or switch device from the rail on the left.
+   the active tick. You can also drag the product sideways, pick a
+   chapter, or switch product from the rail on the left.
    ══════════════════════════════════════════════════════════════════ */
 (() => {
   const $ = s => document.querySelector(s);
@@ -52,13 +52,13 @@
 
     if (!entries.length) { $("#blank").hidden = false; scene.classList.add("is-empty"); return; }
 
-    $("#count").textContent = `${entries.length} device${entries.length > 1 ? "s" : ""}`;
+    $("#count").textContent = `${entries.length} product${entries.length > 1 ? "s" : ""}`;
     buildPicker();
     const heroAt = entries.findIndex(v => (META[v.file] || {}).hero);
     mount(heroAt > -1 ? heroAt : 0);
   })();
 
-  /* ── Left rail: choose a device ──────────────────────────────── */
+  /* ── Left rail: choose a product ─────────────────────────────── */
   function buildPicker() {
     if (!picker || !pickList) return;
     if (entries.length < 2) { picker.hidden = true; return; }
@@ -81,7 +81,7 @@
     // thumbnails stay on their first frame — nothing moves without scrolling
   }
 
-  /* ── Swap in a device ────────────────────────────────────────── */
+  /* ── Swap in a product ───────────────────────────────────────── */
   function mount(i) {
     const entry = entries[i];
     if (!entry) return;
@@ -109,7 +109,7 @@
       if (reduce) video.controls = true;   // reduced motion: give them a player
       buildTicks();
       stage.classList.remove("swapping");
-      pos = current = target = 0;          // a new device starts sealed
+      pos = current = target = 0;          // a new product starts sealed
       apply();
     };
     video.src = entry.scrub ? scrubSrc : `videos/${name}`;
@@ -169,7 +169,7 @@
   const throwPx = () => clamp((duration || 8) * 420, 1600, 5200);
 
   addEventListener("wheel", e => {
-    if (e.target.closest(".picker-list")) return;   // the device list may scroll itself
+    if (e.target.closest(".picker-list")) return;   // the product list may scroll itself
     e.preventDefault();                             // the page stays put
     if (reduce || !duration) return;
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
@@ -217,7 +217,7 @@
     ticks?.querySelectorAll(".tick").forEach(t => t.classList.toggle("on", +t.dataset.i === idx));
   }
 
-  /* ── Drag the device to scrub (drags the scroll) ─────────────── */
+  /* ── Drag the product to scrub ───────────────────────────────── */
   if (!reduce && stage) {
     let startX = 0, startP = 0;
 
@@ -243,7 +243,7 @@
     stage.addEventListener("pointercancel", end);
   }
 
-  /* ── Keys: step between chapters and devices ─────────────────── */
+  /* ── Keys: step between chapters and products ────────────────── */
   addEventListener("keydown", e => {
     if (e.target.closest("input,textarea")) return;
     const step = d => {

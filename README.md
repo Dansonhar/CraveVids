@@ -1,7 +1,7 @@
 # CraveAsia — Video Presentations
 
 A single-screen, black-and-white presentation of the videos in the `videos/` folder.
-The page never scrolls — the device on stage does the moving.
+The page never scrolls — the product on stage does the moving.
 No build step, no dependencies.
 
 ## Run it
