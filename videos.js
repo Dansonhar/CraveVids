@@ -21,6 +21,22 @@
    ───────────────────────────────────────────────────────────── */
 const VIDEO_META = {
 
+  "washingmachine.mp4": {
+    eyebrow: "Exploded View",
+    title: "Washing Machine",
+    desc: "A front-loader taken down to drum, motor, pump and chassis, then built back up.",
+    // dark set; internals macro ~4.2s, fully exploded ~5.6-7.0s, whole by ~8.4s
+    chapters: [
+      { at: 0.00, title: "Whole",      text: "The machine as it stands, lit against a dark room." },
+      { at: 0.14, title: "Front",      text: "Closer on the control panel and the door glass." },
+      { at: 0.28, title: "Panels",     text: "The side panel releases and the drum comes into view." },
+      { at: 0.42, title: "Drivetrain", text: "Macro across the motor, pump and hoses on the chassis base." },
+      { at: 0.56, title: "Exploded",   text: "Front panel, tub and drum, motor, control board and side panel, all apart." },
+      { at: 0.70, title: "Full stack", text: "The wide view — every assembly suspended in order." },
+      { at: 0.84, title: "Assembled",  text: "Closed back up into the finished machine." },
+    ],
+  },
+
   "powerbank.mp4": {
     eyebrow: "Exploded View",
     title: "Power Bank",
