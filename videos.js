@@ -21,7 +21,47 @@
    ───────────────────────────────────────────────────────────── */
 const VIDEO_META = {
 
-  "Automotive_product_film_producti…_202609081523.mp4": {
+  "powerbank.mp4": {
+    eyebrow: "Exploded View",
+    title: "Power Bank",
+    desc: "A 20,000mAh power bank opened out into shell, cell stack, board and port cluster, then closed again.",
+    notes: [
+      "Shot on dark marble — the only clip lit low-key rather than on white",
+    ],
+    // 8s clip. Shell opens from ~1.6s, fully exploded and holding 3.6-5.2s,
+    // drawing back together from ~5.8s, sealed again by ~7.2s.
+    chapters: [
+      { at: 0.00, title: "Sealed",    text: "The finished unit — brushed aluminium shell, status window, single side button." },
+      { at: 0.16, title: "Shell",     text: "The front shell releases and lifts clear of the body." },
+      { at: 0.32, title: "Cells",     text: "The cell stack comes into view — cylindrical cells behind the board." },
+      { at: 0.46, title: "Exploded",  text: "Every layer apart: both shells, cell stack, control board and the port cluster." },
+      { at: 0.58, title: "Ports",     text: "USB-A and USB-C on their own carrier, ribbon back to the board." },
+      { at: 0.72, title: "Closing",   text: "The layers draw back down into the frame." },
+      { at: 0.88, title: "Sealed",    text: "Closed up again — one solid unit, exactly where it started." },
+    ],
+  },
+
+  "monitor.mp4": {
+    eyebrow: "Exploded View",
+    title: "Desktop Monitor",
+    desc: "A monitor on a lit set, opening at the rear panel to the controller board and back again.",
+    notes: [
+      "Cuts to a macro pass over the board partway through, then returns wide",
+    ],
+    // 10s clip. Rear panel separates ~2.5-4s, macro on the controller board
+    // 5-7s, back to the wide set-up by ~8s, whole again at the end.
+    chapters: [
+      { at: 0.00, title: "Set",        text: "The monitor on its stand, screen dark, lit wall behind." },
+      { at: 0.18, title: "Rear",       text: "The back panel releases and swings clear of the chassis." },
+      { at: 0.34, title: "Open",       text: "Panel, frame and rear housing held apart — internals exposed." },
+      { at: 0.50, title: "Board",      text: "Macro across the controller board: processor, capacitors, video inputs." },
+      { at: 0.66, title: "Inputs",     text: "The HDMI and DisplayPort cluster along the board edge." },
+      { at: 0.80, title: "Closing",    text: "The housing draws back onto the panel." },
+      { at: 0.92, title: "Assembled",  text: "Whole again — the finished monitor on its stand." },
+    ],
+  },
+
+  "sedan.mp4": {
     hero: true,
     eyebrow: "Exploded View",
     title: "Sedan — Full Vehicle",
@@ -45,7 +85,7 @@ const VIDEO_META = {
     ],
   },
 
-  "0908 .mp4": {
+  "smartphone.mp4": {
     eyebrow: "Exploded View",
     title: "Smartphone",
     desc: "A phone opened out into display, logic board, battery and rear housing, with macro cut-ins on the camera stack and charging coil.",
