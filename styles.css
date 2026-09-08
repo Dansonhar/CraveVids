@@ -36,7 +36,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
 .stage-video{
   width:100%; height:100%;
   object-fit:contain;              /* nothing gets cropped */
-  filter:grayscale(1) contrast(1.06);
+  /* no filter: the footage keeps its original colour */
   transition:opacity .35s ease;
 }
 .stage.swapping .stage-video{opacity:.15; transition:opacity .2s ease}
@@ -50,17 +50,10 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
 .topbar{
   position:fixed; top:0; left:0; right:0; z-index:10;
   display:flex; align-items:center; justify-content:space-between; gap:20px;
-  padding:20px 28px; pointer-events:none;
-  background:linear-gradient(180deg,rgba(0,0,0,.72),transparent);
+  padding:22px 30px 52px; pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.28) 45%,transparent 100%);
 }
 .brand{display:flex; align-items:center; gap:12px}
-.brand-mark{
-  display:grid; place-items:center; width:30px; height:30px; flex:none; font-size:10px;
-  background:rgba(255,255,255,.10); border:1px solid var(--edge); border-radius:9px;
-  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--inner);
-}
-.brand-text{display:flex; flex-direction:column; line-height:1.2}
-.brand-name{font-size:14px; font-weight:600; letter-spacing:-.01em}
 .brand-sub{font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.16em}
 .scene-title{
   margin:0; font-family:var(--font-display); font-size:clamp(15px,1.5vw,20px);
@@ -99,7 +92,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
   background:rgba(0,0,0,.6); border:1px solid var(--edge); box-shadow:var(--inner);
   transition:border-color .2s ease, box-shadow .2s ease;
 }
-.pick-shot video{width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.05)}
+.pick-shot video{width:100%; height:100%; object-fit:cover}
 .pick:hover .pick-shot{border-color:var(--edge-hi)}
 .pick.on .pick-shot{border-color:var(--white);
   box-shadow:var(--inner), 0 0 0 1px rgba(255,255,255,.5), 0 0 20px rgba(255,255,255,.22)}
@@ -140,3 +133,11 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
   .pick{width:82px; flex:none}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Brand: the supplied Crave artwork. crave-logo.svg keeps the original navy
+   #0E3456 (used for the favicon); crave-logo-white.svg is those same 20 paths
+   in white, for this black UI. */
+.brand{display:flex; align-items:center; gap:13px; min-width:0}
+.brand-logo{width:auto; height:24px; flex:none; display:block}
+.brand-sub{padding-left:13px; border-left:1px solid rgba(255,255,255,.22); white-space:nowrap}
+@media (max-width:760px){ .brand-logo{height:20px} .brand-sub{display:none} }

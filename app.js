@@ -34,7 +34,10 @@
 
     list = list.map(v => (typeof v === "string" ? { file: v, scrub: false } : v))
                .filter(v => v && EXT.test(v.file));
-    if (!list.length) list = Object.keys(META).filter(f => EXT.test(f)).map(f => ({ file: f, scrub: false }));
+    // Static hosting has no /api/videos: use what videos.js names. The
+    // all-keyframe copies in videos/scrub/ are committed, so assume they are
+    // there — video.onerror falls back to the original if one is missing.
+    if (!list.length) list = Object.keys(META).filter(f => EXT.test(f)).map(f => ({ file: f, scrub: true }));
     if (!list.length) { $("#blank").hidden = false; return; }
 
     // videos.js order wins; anything it doesn't mention follows
@@ -86,8 +89,8 @@
 
     // the all-keyframe copy scrubs smoothly; a normal export snaps to keyframes
     const name = encodeURIComponent(entry.file);
-    const scrubSrc = `videos/.scrub/${encodeURIComponent(entry.file.replace(EXT, ".mp4"))}`;
-    video.onerror = () => { if (video.src.includes("/.scrub/")) video.src = `videos/${name}`; };
+    const scrubSrc = `videos/scrub/${encodeURIComponent(entry.file.replace(EXT, ".mp4"))}`;
+    video.onerror = () => { if (video.src.includes("/scrub/")) video.src = `videos/${name}`; };
     video.onloadedmetadata = () => {
       duration = video.duration || 0;
       video.pause();                       // never plays on its own
