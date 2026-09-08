@@ -7,6 +7,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const { execFile } = require("child_process");
+const scrub = require("./scripts/make-scrub");
 
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT) || 5173;
@@ -58,8 +59,13 @@ const server = http.createServer((req, res) => {
         .filter(f => /\.(mp4|webm|mov|m4v)$/i.test(f) && !f.startsWith("."))
         .sort((a, b) => a.localeCompare(b));
     } catch { /* no videos/ folder yet */ }
+    // each entry says whether an all-keyframe scroll-scrub copy exists
+    const out = files.map(f => ({
+      file: f,
+      scrub: fs.existsSync(path.join(dir, ".scrub", f.replace(/\.[^.]+$/, ".mp4"))),
+    }));
     res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
-    return res.end(JSON.stringify(files));
+    return res.end(JSON.stringify(out));
   }
 
   // resolve path, keep it inside ROOT
@@ -151,5 +157,8 @@ function listen(port, attemptsLeft) {
   server.once("listening", onListening);
   server.listen(port);
 }
+
+// keep scroll-scrub copies current before the browser asks for them
+scrub.main({ quiet: true }).catch(() => {});
 
 listen(PORT, 10);
