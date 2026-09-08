@@ -1,11 +1,15 @@
 /* ══════════════════════════════════════════════════════════════════
-   CraveAsia Video Presentations — one screen, no page scroll.
+   CraveAsia Video Presentations — the wheel drives the device.
 
-   The device keeps moving on its own (the clip loops), and playback
-   position drives everything else: the timeline fill, the live
-   chapter caption and the active tick. You can take hold of it —
-   drag the device sideways to scrub, click to pause, pick a chapter
-   to jump, or switch device from the rail on the left.
+   The page itself never moves: it is locked to one screen, no
+   scrollbar, no runway. Wheel, trackpad and touch gestures are
+   captured and fed to a virtual playhead (0 → 1) instead of the
+   document, and that playhead IS the video's currentTime. Scroll
+   down and the device comes apart; scroll back and it reassembles.
+
+   The same playhead drives the timeline fill, the live chapter and
+   the active tick. You can also drag the device sideways, pick a
+   chapter, or switch device from the rail on the left.
    ══════════════════════════════════════════════════════════════════ */
 (() => {
   const $ = s => document.querySelector(s);
@@ -13,7 +17,8 @@
 
   const scene = $("#scene"), stage = $("#stage"), video = $("#scrub"), glow = $(".scene-glow");
   const caption = $("#caption"), trackFill = $("#track-fill"), ticks = $("#track-ticks");
-  const track = $("#track"), toggle = $("#toggle"), picker = $("#picker"), pickList = $("#picker-list");
+  const track = $("#track"), picker = $("#picker"), pickList = $("#picker-list");
+  const cue = $("#cue");
 
   const META = typeof VIDEO_META === "object" && VIDEO_META ? VIDEO_META : {};
   const EXT = /\.(mp4|webm|mov|m4v)$/i;
@@ -22,6 +27,8 @@
   const pretty = f => f.replace(EXT, "").replace(/[-_]+/g, " ").trim().replace(/\b\w/g, c => c.toUpperCase());
 
   let entries = [], active = -1, chapters = [], activeChapter = -1, dragging = false;
+  let pos = 0;                       // the playhead: 0 → 1 through the clip
+  let duration = 0, target = 0, current = 0, easing = false;
 
   /* ── Boot ────────────────────────────────────────────────────── */
   (async function boot() {
@@ -71,17 +78,7 @@
       const b = e.target.closest(".pick");
       if (b && +b.dataset.i !== active) mount(+b.dataset.i);
     });
-    pickList.addEventListener("pointerover", e => {
-      const v = e.target.closest(".pick")?.querySelector("video");
-      if (v && !reduce) { v.loop = true; v.play().catch(() => {}); }
-    });
-    pickList.addEventListener("pointerout", e => {
-      const b = e.target.closest(".pick");
-      if (b && !b.contains(e.relatedTarget)) {
-        const v = b.querySelector("video");
-        if (v) { v.pause(); try { v.currentTime = 0.1; } catch {} }
-      }
-    });
+    // thumbnails stay on their first frame — nothing moves without scrolling
   }
 
   /* ── Swap in a device ────────────────────────────────────────── */
@@ -107,10 +104,13 @@
     const scrubSrc = `videos/.scrub/${encodeURIComponent(entry.file.replace(EXT, ".mp4"))}`;
     video.onerror = () => { if (video.src.includes("/.scrub/")) video.src = `videos/${name}`; };
     video.onloadedmetadata = () => {
+      duration = video.duration || 0;
+      video.pause();                       // never plays on its own
+      if (reduce) video.controls = true;   // reduced motion: give them a player
       buildTicks();
       stage.classList.remove("swapping");
-      frame();
-      if (!reduce) play(); else video.controls = true;
+      pos = current = target = 0;          // a new device starts sealed
+      apply();
     };
     video.src = entry.scrub ? scrubSrc : `videos/${name}`;
     video.load();
@@ -136,106 +136,126 @@
     seek(clamp((e.clientX - r.left) / r.width, 0, 1));
   });
 
-  const seek = p => {
-    if (!video.duration) return;
-    try { video.currentTime = clamp(p, 0, 1) * (video.duration - 0.01); } catch {}
-    frame();
-  };
+  // jumping to a chapter just moves the playhead — the easing glides there
+  const seek = p => { pos = clamp(p, 0, 1); apply(); };
 
-  /* ── Play / pause ────────────────────────────────────────────── */
-  function play() { video.play().then(paint).catch(() => {}); }
-  function paint() {
-    const on = !video.paused;
-    toggle.classList.toggle("playing", on);
-    toggle.setAttribute("aria-label", on ? "Pause" : "Play");
-    toggle.innerHTML = on ? '<span class="ico-pause"></span>' : '<span class="ico-play"></span>';
+  /* ── The playhead ────────────────────────────────────────────────
+     `pos` is 0 → 1 through the clip. Nothing about it touches the
+     document, so the page cannot move.                              */
+  function apply() {
+    if (reduce || !duration) return;
+    target = pos * (duration - 0.01);
+    if (cue) cue.style.opacity = String(clamp(1 - pos * 14, 0, 1));
+    paintChapter(pos);
+    ease();
   }
-  toggle?.addEventListener("click", () => { video.paused ? play() : video.pause(); paint(); });
-  video.addEventListener("play", paint);
-  video.addEventListener("pause", paint);
 
-  /* ── Playback drives everything ──────────────────────────────── */
-  function frame() {
-    const d = video.duration || 0;
-    const p = d ? clamp(video.currentTime / d, 0, 1) : 0;
+  // glide the video toward the playhead instead of snapping to it
+  function ease() {
+    if (easing) return;
+    easing = true;
+    requestAnimationFrame(function step() {
+      const diff = target - current;
+      if (Math.abs(diff) < 0.004) { current = target; easing = false; }
+      else { current += diff * 0.18; requestAnimationFrame(step); }
+      if (video.readyState >= 1 && !video.seeking) {
+        try { video.currentTime = clamp(current, 0, Math.max(0, duration - 0.01)); } catch {}
+      }
+    });
+  }
 
+  /* ── Wheel / trackpad → playhead (never the page) ────────────── */
+  // how much wheel travel covers the whole clip — longer clips, longer throw
+  const throwPx = () => clamp((duration || 8) * 420, 1600, 5200);
+
+  addEventListener("wheel", e => {
+    if (e.target.closest(".picker-list")) return;   // the device list may scroll itself
+    e.preventDefault();                             // the page stays put
+    if (reduce || !duration) return;
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
+    pos = clamp(pos + (e.deltaY * unit) / throwPx(), 0, 1);
+    apply();
+  }, { passive: false });
+
+  /* ── Touch swipe → playhead ──────────────────────────────────── */
+  {
+    let y0 = 0, p0 = 0, active = false;
+    addEventListener("touchstart", e => {
+      if (e.target.closest(".picker-list")) return;
+      active = true; y0 = e.touches[0].clientY; p0 = pos;
+    }, { passive: true });
+    addEventListener("touchmove", e => {
+      if (!active) return;
+      e.preventDefault();                           // no rubber-banding the page
+      if (reduce || !duration) return;
+      pos = clamp(p0 + (y0 - e.touches[0].clientY) / (innerHeight * 0.9), 0, 1);
+      apply();
+    }, { passive: false });
+    addEventListener("touchend", () => { active = false; }, { passive: true });
+  }
+
+  // belt and braces: if anything ever does scroll the document, undo it
+  addEventListener("scroll", () => { if (scrollY || scrollX) scrollTo(0, 0); }, { passive: true });
+  addEventListener("resize", apply, { passive: true });
+
+  /* ── Scroll position drives the readouts ─────────────────────── */
+  function paintChapter(p) {
     if (trackFill) trackFill.style.width = `${p * 100}%`;
     if (glow) glow.style.opacity = String(0.35 + Math.sin(p * Math.PI) * 0.65);
 
     let idx = -1;
     for (let i = 0; i < chapters.length; i++) if (p >= chapters[i].at - 0.002) idx = i;
-    if (idx !== activeChapter) {
-      activeChapter = idx;
-      const c = chapters[idx];
-      caption.classList.toggle("on", !!c);
-      if (c) {
-        $("#cap-idx").textContent = `${String(idx + 1).padStart(2, "0")} / ${String(chapters.length).padStart(2, "0")}`;
-        $("#cap-title").textContent = c.title;
-        $("#cap-text").textContent = c.text || "";
-      }
-      ticks?.querySelectorAll(".tick").forEach(t => t.classList.toggle("on", +t.dataset.i === idx));
+    if (idx === activeChapter) return;
+    activeChapter = idx;
+    const c = chapters[idx];
+    caption.classList.toggle("on", !!c);
+    if (c) {
+      $("#cap-idx").textContent = `${String(idx + 1).padStart(2, "0")} / ${String(chapters.length).padStart(2, "0")}`;
+      $("#cap-title").textContent = c.title;
+      $("#cap-text").textContent = c.text || "";
     }
+    ticks?.querySelectorAll(".tick").forEach(t => t.classList.toggle("on", +t.dataset.i === idx));
   }
-  (function loop() { frame(); requestAnimationFrame(loop); })();
 
-  /* ── Drag the device to scrub ────────────────────────────────── */
+  /* ── Drag the device to scrub (drags the scroll) ─────────────── */
   if (!reduce && stage) {
-    let startX = 0, startT = 0, moved = false, wasPlaying = false;
+    let startX = 0, startP = 0;
 
     stage.addEventListener("pointerdown", e => {
-      if (e.target.closest(".stage-toggle")) return;
-      dragging = true; moved = false;
-      startX = e.clientX; startT = video.currentTime;
-      wasPlaying = !video.paused;
-      video.pause();
+      dragging = true;
+      startX = e.clientX; startP = pos;
       stage.classList.add("dragging");
       stage.setPointerCapture(e.pointerId);
     });
     stage.addEventListener("pointermove", e => {
-      if (!dragging || !video.duration) return;
-      const dx = e.clientX - startX;
-      if (Math.abs(dx) > 3) moved = true;
+      if (!dragging) return;
       // one stage width of drag ≈ the whole clip
-      const t = clamp(startT + (dx / stage.offsetWidth) * video.duration, 0, video.duration - 0.01);
-      try { video.currentTime = t; } catch {}
+      pos = clamp(startP + (e.clientX - startX) / stage.offsetWidth, 0, 1);
+      apply();
     });
     const end = e => {
       if (!dragging) return;
       dragging = false;
       stage.classList.remove("dragging");
       try { stage.releasePointerCapture(e.pointerId); } catch {}
-      if (!moved) { wasPlaying ? video.pause() : play(); paint(); }   // a click, not a drag
-      else if (wasPlaying) play();
     };
     stage.addEventListener("pointerup", end);
     stage.addEventListener("pointercancel", end);
   }
 
-  /* ── Pointer tilt ────────────────────────────────────────────── */
-  if (!reduce && stage) {
-    let raf = 0, tx = 0, ty = 0, cx = 0, cy = 0;
-    scene.addEventListener("pointermove", e => {
-      if (dragging) return;
-      const r = stage.getBoundingClientRect();
-      tx = clamp((e.clientX - r.left) / r.width - 0.5, -1, 1) * 2;
-      ty = clamp((e.clientY - r.top) / r.height - 0.5, -1, 1) * 2;
-      if (!raf) raf = requestAnimationFrame(lean);
-    });
-    scene.addEventListener("pointerleave", () => { tx = ty = 0; if (!raf) raf = requestAnimationFrame(lean); });
-    function lean() {
-      cx += (tx - cx) * 0.08; cy += (ty - cy) * 0.08;
-      stage.style.transform =
-        `perspective(1500px) rotateY(${cx * 3.4}deg) rotateX(${-cy * 2.2}deg)`;
-      raf = (Math.abs(tx - cx) > 0.001 || Math.abs(ty - cy) > 0.001) ? requestAnimationFrame(lean) : 0;
-    }
-  }
-
-  /* ── Keys ────────────────────────────────────────────────────── */
+  /* ── Keys: step between chapters and devices ─────────────────── */
   addEventListener("keydown", e => {
-    if (e.key === " ") { e.preventDefault(); video.paused ? play() : video.pause(); paint(); }
-    if (e.key === "ArrowLeft")  seek((video.currentTime - 0.4) / (video.duration || 1));
-    if (e.key === "ArrowRight") seek((video.currentTime + 0.4) / (video.duration || 1));
-    if (e.key === "ArrowDown" && entries.length) mount((active + 1) % entries.length);
-    if (e.key === "ArrowUp" && entries.length) mount((active - 1 + entries.length) % entries.length);
+    if (e.target.closest("input,textarea")) return;
+    const step = d => {
+      const p = pos;
+      let i = -1;
+      for (let k = 0; k < chapters.length; k++) if (p >= chapters[k].at - 0.002) i = k;
+      const next = clamp(i + d, 0, chapters.length - 1);
+      if (chapters[next]) { e.preventDefault(); seek(chapters[next].at); }
+    };
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") step(1);
+    if (e.key === "ArrowLeft"  || e.key === "ArrowUp")   step(-1);
+    if (e.key === "[" && entries.length) mount((active - 1 + entries.length) % entries.length);
+    if (e.key === "]" && entries.length) mount((active + 1) % entries.length);
   });
 })();

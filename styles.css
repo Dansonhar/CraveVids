@@ -5,18 +5,22 @@
   --dim:rgba(255,255,255,.46);
   --faint:rgba(255,255,255,.22);
 
-  --glass:rgba(255,255,255,.055);
-  --glass-hi:rgba(255,255,255,.10);
+  --glass:#101114;      /* solid panel, was frosted glass */
+  --glass-hi:#181A1E;   /* solid raised panel */
   --edge:rgba(255,255,255,.14);
   --edge-hi:rgba(255,255,255,.34);
-  --blur:saturate(0%) blur(22px);
+  --blur:none;   /* glassmorphism removed */
   --inner:inset 0 1px 0 rgba(255,255,255,.18);
   --drop:0 18px 50px rgba(0,0,0,.6);
 
-  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  /* Type: Space Grotesk for display/headings, Inter for everything else.
+     Both fall back to the system stack if the webfonts do not load. */
+  --font:"Inter","Inter var",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --font-display:"Space Grotesk","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
 }
 *{box-sizing:border-box}
-html,body{height:100%; overflow:hidden}          /* one page, nothing scrolls */
+html,body{height:100%; overflow:hidden; overscroll-behavior:none}
 body{
   margin:0; background:var(--black); color:var(--white);
   font-family:var(--font); font-size:15px; line-height:1.55;
@@ -41,15 +45,18 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
 
 /* ── Layout: header / scene / footer, exactly one viewport ──── */
 .app{
-  position:relative; z-index:1;
-  height:100dvh; display:grid; grid-template-rows:auto 1fr auto; overflow:hidden;
+  position:fixed; inset:0; z-index:1;
+  display:grid; grid-template-rows:auto 1fr auto; overflow:hidden;
 }
 
+/* The stage is locked to one screen — the wheel drives the clip, not the page. */
+
 .topbar{
+  position:relative; z-index:20;
   display:flex; align-items:center; justify-content:space-between; gap:16px;
   padding:14px 26px; border-bottom:1px solid var(--edge);
   background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
-  -webkit-backdrop-filter:saturate(0%) blur(26px); backdrop-filter:saturate(0%) blur(26px);
+  
   box-shadow:var(--inner);
 }
 .brand{display:flex; align-items:center; gap:12px}
@@ -76,11 +83,11 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
   border-radius:22px; overflow:hidden;
   background:rgba(255,255,255,.03); border:1px solid var(--edge);
   box-shadow:var(--inner), 0 50px 120px rgba(0,0,0,.85);
-  transform:perspective(1500px); transform-style:preserve-3d;
-  will-change:transform; touch-action:none; cursor:grab;
+  touch-action:none; cursor:grab;
 }
 .scene-stage.dragging{cursor:grabbing}
-.scene-video{width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.06);
+/* Never filter the footage — it must show the original colour as shot. */
+.scene-video{width:100%; height:100%; object-fit:cover;
   transition:opacity .35s ease}
 .scene-stage.swapping .scene-video{opacity:.2; transition:opacity .2s ease}
 
@@ -89,25 +96,9 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
   background:radial-gradient(58% 58% at 50% 50%, rgba(255,255,255,.30), transparent 70%);
   filter:blur(46px); transition:opacity .25s linear;
 }
-.scene-scan{
-  position:absolute; inset:0; z-index:2; pointer-events:none; opacity:.35; mix-blend-mode:overlay;
-  background:repeating-linear-gradient(180deg,rgba(255,255,255,.07) 0 1px,transparent 1px 3px);
-}
+/* removed: this sat over the video in overlay blend and tinted it */
+.scene-scan{display:none}
 
-.stage-toggle{
-  position:absolute; left:16px; bottom:16px; z-index:3;
-  display:grid; place-items:center; width:42px; height:42px; padding:0; cursor:pointer;
-  border-radius:50%; color:var(--white);
-  background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.4);
-  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); box-shadow:var(--inner);
-  opacity:0; transform:translateY(6px); transition:opacity .2s ease, transform .2s ease, background .2s ease;
-}
-.scene-stage:hover .stage-toggle,.stage-toggle:focus-visible{opacity:1; transform:none}
-.stage-toggle:hover{background:var(--white); color:var(--black)}
-.ico-pause,.ico-play{display:block}
-.ico-pause{width:11px; height:13px; border-left:3px solid currentColor; border-right:3px solid currentColor}
-.ico-play{width:0; height:0; margin-left:3px;
-  border-left:12px solid currentColor; border-top:7px solid transparent; border-bottom:7px solid transparent}
 
 /* ── Timeline ───────────────────────────────────────────────── */
 .track{position:relative; width:100%; flex:none; padding-top:4px; cursor:pointer}
@@ -137,7 +128,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
   align-self:center; max-height:100%; display:flex; flex-direction:column; gap:10px;
   padding:14px 12px; border-radius:18px;
   background:var(--glass); border:1px solid var(--edge);
-  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
+  
   box-shadow:var(--inner), var(--drop);
 }
 .picker[hidden]{display:none}
@@ -156,7 +147,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
 .pick-shot{position:relative; display:block; aspect-ratio:16/9; overflow:hidden; border-radius:11px;
   background:rgba(0,0,0,.6); border:1px solid var(--edge); box-shadow:var(--inner);
   transition:border-color .2s ease, box-shadow .2s ease}
-.pick-shot video{width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.05)}
+.pick-shot video{width:100%; height:100%; object-fit:cover}
 .pick:hover .pick-shot{border-color:var(--edge-hi)}
 .pick.on .pick-shot{border-color:var(--white);
   box-shadow:var(--inner), 0 0 0 1px rgba(255,255,255,.5), 0 0 22px rgba(255,255,255,.25)}
@@ -168,7 +159,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
 .caption{
   align-self:center; padding:20px 22px; border-radius:18px;
   background:var(--glass); border:1px solid var(--edge);
-  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
+  
   box-shadow:var(--inner), var(--drop);
   opacity:0; transform:translateX(10px); transition:opacity .35s ease, transform .35s ease;
 }
@@ -185,7 +176,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
 /* ── Empty state ────────────────────────────────────────────── */
 .blank{grid-column:1/-1; justify-self:center; text-align:center; padding:56px 40px; border-radius:18px;
   background:var(--glass); border:1px dashed var(--edge);
-  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--inner)}
+   box-shadow:var(--inner)}
 .blank[hidden]{display:none}
 .blank h2{margin:0 0 10px; font-size:23px; font-weight:600; letter-spacing:-.02em}
 .blank p{margin:0; color:var(--mid)}
@@ -193,12 +184,9 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
 .foot{display:flex; justify-content:space-between; gap:16px; padding:12px 26px;
   font-size:12px; color:var(--dim); border-top:1px solid var(--edge);
   background:linear-gradient(0deg,rgba(255,255,255,.05),transparent);
-  -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px)}
+  }
 
 /* ── Fallbacks & narrow screens ─────────────────────────────── */
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  .topbar,.picker,.caption,.blank,.foot{background:rgba(20,20,20,.94)}
-}
 @media (max-width:1180px){
   .scene{grid-template-columns:128px minmax(0,1fr) 250px; gap:18px; padding:18px}
 }
@@ -218,5 +206,59 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
 }
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important}
-  .stage-toggle{opacity:1; transform:none}
+  }
+
+
+/* ══════════════════════════════════════════════════════════════
+   TYPOGRAPHY — display face on headings, Inter everywhere else
+   ══════════════════════════════════════════════════════════════ */
+body{font-family:var(--font); font-feature-settings:"kern" 1,"liga" 1,"cv02" 1,"cv11" 1;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}
+
+h1,h2,h3,h4,
+.scene-title,.brand-name,.caption-title,.blank h2,.modal-meta h2{
+  font-family:var(--font-display);
+  font-weight:700;
+  letter-spacing:-.03em;
+  font-feature-settings:"ss01" 1,"kern" 1;
+}
+
+.scene-title{font-size:clamp(26px,3.4vw,46px); line-height:1.02; text-wrap:balance}
+.brand-name{font-size:15px; font-weight:700; letter-spacing:-.01em}
+.caption-title{font-size:16px; font-weight:600; letter-spacing:-.015em; line-height:1.25}
+.caption-text{font-size:13px; line-height:1.62; letter-spacing:.002em; color:var(--mid)}
+
+/* small caps-ish labels: the one place letterspacing should be wide */
+.brand-sub,.topbar-title,.scene-eyebrow,.picker-label,.pick-name,.rail-tick,.cue-text,.drag-hint{
+  font-family:var(--font);
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.2em;
+  font-variant-numeric:tabular-nums;
+}
+
+.caption-idx,.pos,.card-file,.foot{font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1}
+.caption-idx{font-family:var(--font-mono); font-weight:600; letter-spacing:0}
+.card-file{font-family:var(--font-mono); letter-spacing:0}
+code{font-family:var(--font-mono)}
+
+button,input,select,textarea{font-family:inherit}
+
+
+/* scroll cue — fades out as soon as you start */
+.cue{
+  position:fixed; left:50%; bottom:26px; z-index:15; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  pointer-events:none; transition:opacity .35s ease;
+}
+.cue-text{font-size:9.5px; letter-spacing:.28em; text-transform:uppercase; color:var(--dim)}
+.cue-arrow{
+  width:1px; height:26px;
+  background:linear-gradient(180deg,var(--white),transparent);
+  animation:cueDrop 1.9s cubic-bezier(.22,.61,.36,1) infinite;
+}
+@keyframes cueDrop{0%{transform:scaleY(.2); opacity:0}40%{opacity:1}100%{transform:scaleY(1); opacity:0}}
+
+@media (prefers-reduced-motion:reduce){
+      .cue{display:none}
 }

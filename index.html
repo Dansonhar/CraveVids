@@ -6,6 +6,9 @@
 <title>CraveAsia Video Presentations</title>
 <meta name="description" content="Video presentations by CraveAsia.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><path d='M13 10l10 6-10 6z' fill='%23fff'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -35,12 +38,9 @@
     <div class="stage-col">
       <div class="scene-stage" id="stage">
         <div class="scene-glow" aria-hidden="true"></div>
-        <video id="scrub" class="scene-video" muted loop playsinline preload="auto"
+        <video id="scrub" class="scene-video" muted playsinline preload="auto"
                disablepictureinpicture aria-label="Exploded view"></video>
         <div class="scene-scan" aria-hidden="true"></div>
-        <button class="stage-toggle" id="toggle" aria-label="Pause">
-          <span class="ico-pause" aria-hidden="true"></span>
-        </button>
       </div>
 
       <div class="track" id="track" aria-label="Timeline">
@@ -50,7 +50,7 @@
 
       <div class="scene-foot">
         <h1 class="scene-title" id="scene-title"></h1>
-        <p class="hint">Drag the device to scrub &middot; click to pause</p>
+        <p class="hint">Scroll to explode &middot; drag the device to scrub</p>
       </div>
     </div>
 
@@ -68,6 +68,11 @@
     </section>
 
   </main>
+
+  <div class="cue" id="cue" aria-hidden="true">
+    <span class="cue-text">Scroll to explode</span>
+    <span class="cue-arrow"></span>
+  </div>
 
   <footer class="foot">
     <span>CraveAsia</span>
