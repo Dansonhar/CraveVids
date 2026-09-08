@@ -63,7 +63,7 @@ const server = http.createServer((req, res) => {
     // each entry says whether an all-keyframe scroll-scrub copy exists
     const out = files.map(f => ({
       file: f,
-      scrub: fs.existsSync(path.join(dir, ".scrub", f.replace(/\.[^.]+$/, ".mp4"))),
+      scrub: fs.existsSync(path.join(dir, "scrub", f.replace(/\.[^.]+$/, ".mp4"))),
     }));
     res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
     return res.end(JSON.stringify(out));

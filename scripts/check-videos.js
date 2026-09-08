@@ -23,7 +23,7 @@ if (!files.length) {
 console.log(`\n  ${files.length} video${files.length > 1 ? "s" : ""} in videos/\n`);
 for (const f of files) {
   const m = META[f] || {};
-  const scrubFile = path.join(dir, ".scrub", f.replace(EXT, ".mp4"));
+  const scrubFile = path.join(dir, "scrub", f.replace(EXT, ".mp4"));
   const hasScrub = fs.existsSync(scrubFile);
   const fresh = hasScrub && fs.statSync(scrubFile).mtimeMs >= fs.statSync(path.join(dir, f)).mtimeMs;
   const tags = [
@@ -36,5 +36,5 @@ for (const f of files) {
   console.log(`    ${tags}\n`);
 }
 
-const missing = files.filter(f => !fs.existsSync(path.join(dir, ".scrub", f.replace(EXT, ".mp4"))));
+const missing = files.filter(f => !fs.existsSync(path.join(dir, "scrub", f.replace(EXT, ".mp4"))));
 if (missing.length) console.log(`  ${d("Run 'npm run scrub' (or just 'npm run dev') to build the scroll-scrub copies.")}\n`);

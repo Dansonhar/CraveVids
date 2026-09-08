@@ -1,4 +1,4 @@
-/* Builds scroll-scrub copies of every video in videos/ → videos/.scrub/
+/* Builds scroll-scrub copies of every video in videos/ → videos/scrub/
    Scrubbing a normal MP4 is jerky: seeking snaps to the nearest keyframe, and
    most exports have one keyframe every few seconds (this project's first video
    had exactly one, for 240 frames). Re-encoding with a keyframe on EVERY frame
@@ -11,7 +11,7 @@ const { spawn, spawnSync } = require("child_process");
 
 const ROOT = path.join(__dirname, "..");
 const SRC = path.join(ROOT, "videos");
-const OUT = path.join(SRC, ".scrub");
+const OUT = path.join(SRC, "scrub");
 const EXT = /\.(mp4|webm|mov|m4v)$/i;
 
 const hasFfmpeg = () => spawnSync("ffmpeg", ["-version"], { stdio: "ignore" }).status === 0;

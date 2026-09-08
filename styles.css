@@ -59,13 +59,11 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; co
   
   box-shadow:var(--inner);
 }
-/* Brand: the Crave logo itself, no wordmark text.
-   The SVG artwork is navy (#0E3456); the white variant is used on the dark UI. */
+/* Brand: the Crave logo. The supplied artwork is navy #0E3456 (kept intact in
+   crave-logo.svg and used for the favicon); crave-logo-white.svg is the same
+   20 paths with the fill set to white, for this black UI. */
 .brand{display:flex; align-items:center; gap:14px; min-width:0}
-.brand-logo{
-  width:auto; height:26px; flex:none;      /* 350x100 artwork, scaled by height */
-  display:block;
-}
+.brand-logo{width:auto; height:26px; flex:none; display:block}   /* 350x100 artwork, scaled by height */
 .brand-sub{
   padding-left:14px; border-left:1px solid var(--edge);
   white-space:nowrap;
