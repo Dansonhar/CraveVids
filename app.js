@@ -154,13 +154,16 @@
   const EXT = /\.(mp4|webm|mov|m4v)$/i;
   const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
   const pretty = f => f.replace(EXT, "").replace(/[-_]+/g, " ").trim().replace(/\b\w/g, c => c.toUpperCase());
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 
   if (!reduce) document.body.classList.add("motion");   // unlocks the reveal animation
 
   let duration = 0, target = 0, current = 0, chapters = [], activeChapter = -1;
   let dragging = false, ticking = false;
 
-  /* ── pick the hero video ─────────────────────────────────────── */
+  /* ── load the list, build the picker, mount the first video ──── */
+  let entries = [], activeIndex = -1;
+
   async function boot() {
     let list = [];
     try {
@@ -172,46 +175,107 @@
     if (!list.length) return;                       // no videos → no scene
 
     // videos.js can nominate one with `hero: true`; otherwise the first file
-    const picked = list.find(v => (META[v.file] || {}).hero) || list[0];
-    const meta = META[picked.file] || {};
-    chapters = Array.isArray(meta.chapters) ? meta.chapters.slice().sort((a, b) => a.at - b.at) : [];
-
-    $("#scene-title").textContent = meta.title || pretty(picked.file);
-    if (meta.eyebrow) $("#scene-eyebrow").textContent = meta.eyebrow;
-
-    // prefer the all-keyframe scrub copy
-    const name = encodeURIComponent(picked.file);
-    const scrubSrc = `videos/.scrub/${encodeURIComponent(picked.file.replace(EXT, ".mp4"))}`;
-    video.src = picked.scrub ? scrubSrc : `videos/${name}`;
-    video.addEventListener("error", () => {          // scrub copy missing → original
-      if (video.src.includes("/.scrub/")) video.src = `videos/${name}`;
-    }, { once: true });
+    const heroAt = list.findIndex(v => (META[v.file] || {}).hero);
+    entries = list;
 
     scene.hidden = false;
     const lead = $("#lead"); if (lead) lead.hidden = false;
 
-    video.addEventListener("loadedmetadata", () => {
+    buildPicker();
+    mount(heroAt > -1 ? heroAt : 0);
+  }
+
+  /* ── left-hand picker ────────────────────────────────────────── */
+  function buildPicker() {
+    const picker = $("#picker"), listEl = $("#picker-list");
+    if (!picker || !listEl) return;
+    if (entries.length < 2) { picker.hidden = true; return; }   // nothing to switch between
+
+    listEl.innerHTML = entries.map((v, i) => {
+      const meta = META[v.file] || {};
+      const title = meta.title || pretty(v.file);
+      return `<button class="pick" data-i="${i}" title="${esc(title)}" aria-label="Show ${esc(title)}">
+          <span class="pick-shot">
+            <video src="videos/${encodeURIComponent(v.file)}#t=0.1" muted playsinline preload="metadata"></video>
+          </span>
+          <span class="pick-name">${esc(title)}</span>
+        </button>`;
+    }).join("");
+    picker.hidden = false;
+
+    listEl.addEventListener("click", e => {
+      const b = e.target.closest(".pick");
+      if (b && +b.dataset.i !== activeIndex) mount(+b.dataset.i);
+    });
+    // hovering a thumbnail lets it play, so you can see what you are picking
+    listEl.addEventListener("pointerover", e => {
+      const v = e.target.closest(".pick")?.querySelector("video");
+      if (v && !reduce) { v.loop = true; v.play().catch(() => {}); }
+    });
+    listEl.addEventListener("pointerout", e => {
+      const b = e.target.closest(".pick");
+      if (b && !b.contains(e.relatedTarget)) {
+        const v = b.querySelector("video");
+        if (v) { v.pause(); try { v.currentTime = 0.1; } catch {} }
+      }
+    });
+  }
+
+  /* ── swap the scene over to another video, in place ──────────── */
+  function mount(i) {
+    const entry = entries[i];
+    if (!entry) return;
+    activeIndex = i;
+
+    const meta = META[entry.file] || {};
+    chapters = Array.isArray(meta.chapters) ? meta.chapters.slice().sort((a, b) => a.at - b.at) : [];
+
+    // reset everything the previous video left behind
+    duration = 0; target = 0; current = 0; activeChapter = -1;
+    caption.classList.remove("on");
+    if (railFill) railFill.style.height = "0%";
+    const rail = $("#rail"); if (rail) rail.hidden = false;
+    stage.classList.add("swapping");
+
+    $("#scene-title").textContent = meta.title || pretty(entry.file);
+    $("#scene-eyebrow").textContent = meta.eyebrow || "Exploded View";
+    $("#picker-list")?.querySelectorAll(".pick")
+      .forEach(b => b.classList.toggle("on", +b.dataset.i === i));
+
+    // prefer the all-keyframe scrub copy — a normal export stutters when seeked
+    const name = encodeURIComponent(entry.file);
+    const scrubSrc = `videos/.scrub/${encodeURIComponent(entry.file.replace(EXT, ".mp4"))}`;
+    video.onerror = () => { if (video.src.includes("/.scrub/")) video.src = `videos/${name}`; };
+    video.onloadedmetadata = () => {
       duration = video.duration || 0;
       video.pause();
       // runway length scales with the video: ~45vh of scroll per second
       if (!reduce) scene.style.height = `${clamp(Math.round(duration * 45), 300, 700)}vh`;
       buildTicks();
+      stage.classList.remove("swapping");
       onScroll();
       if (reduce) video.controls = true;             // no scroll animation — just play it
-    }, { once: true });
+    };
+    video.src = entry.scrub ? scrubSrc : `videos/${name}`;
+    video.load();
+
+    // start the new scene from its first frame
+    if (scrollY > sceneTop()) scrollTo({ top: sceneTop(), behavior: reduce ? "auto" : "smooth" });
   }
 
   /* ── chapter ticks on the rail ───────────────────────────────── */
   function buildTicks() {
     if (!ticks) return;
-    if (!chapters.length) { const r = $("#rail"); if (r) r.hidden = true; return; }
+    const rail = $("#rail");
+    if (!chapters.length) { ticks.innerHTML = ""; if (rail) rail.hidden = true; return; }
+    if (rail) rail.hidden = false;
     ticks.innerHTML = chapters.map((c, i) =>
-      `<button class="rail-tick" data-i="${i}" style="top:${c.at * 100}%">${c.title}</button>`).join("");
-    ticks.addEventListener("click", e => {
-      const b = e.target.closest(".rail-tick");
-      if (b) scrollToProgress(chapters[+b.dataset.i].at);
-    });
+      `<button class="rail-tick" data-i="${i}" style="top:${c.at * 100}%">${esc(c.title)}</button>`).join("");
   }
+  ticks && ticks.addEventListener("click", e => {
+    const b = e.target.closest(".rail-tick");
+    if (b) scrollToProgress(chapters[+b.dataset.i].at);
+  });
 
   const runway = () => scene.offsetHeight - innerHeight;
   const sceneTop = () => scene.offsetTop;

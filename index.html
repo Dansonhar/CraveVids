@@ -25,6 +25,12 @@
 <!-- ── Motion scene: scroll drives the exploded view ─────────────── -->
 <section class="scene" id="scene" hidden>
   <div class="scene-pin">
+    <!-- left-hand picker: tap a thumbnail to swap the scene video -->
+    <aside class="picker" id="picker" hidden aria-label="Choose a video">
+      <p class="picker-label">Videos</p>
+      <div class="picker-list" id="picker-list"></div>
+    </aside>
+
     <div class="scene-stage" id="stage">
       <div class="scene-glow" aria-hidden="true"></div>
       <video id="scrub" class="scene-video" muted playsinline preload="auto"

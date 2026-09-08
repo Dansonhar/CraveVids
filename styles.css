@@ -102,7 +102,7 @@ code{
   box-shadow:var(--inner), 0 26px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06);
 }
 .shot{position:relative; aspect-ratio:16/9; background:rgba(0,0,0,.55); overflow:hidden}
-.shot video,.shot img{width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.05)}
+.shot video,.shot img{width:100%; height:100%; object-fit:cover}
 .shot::after{ /* glass sheen over the still */
   content:""; position:absolute; inset:0; pointer-events:none;
   background:linear-gradient(160deg,rgba(255,255,255,.14),transparent 42%);
@@ -220,7 +220,8 @@ code{
   will-change:transform; touch-action:pan-y; cursor:grab;
 }
 .scene-stage.dragging{cursor:grabbing}
-.scene-video{width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.06)}
+/* No filter here on purpose: the footage must show its original colour. */
+.scene-video{width:100%; height:100%; object-fit:cover}
 
 /* soft light that swells through the middle of the scroll */
 .scene-glow{
@@ -230,7 +231,7 @@ code{
 }
 /* fine scanlines over the glass */
 .scene-scan{
-  position:absolute; inset:0; z-index:2; pointer-events:none; opacity:.35; mix-blend-mode:overlay;
+  position:absolute; inset:0; z-index:2; pointer-events:none; opacity:0;
   background:repeating-linear-gradient(180deg,rgba(255,255,255,.07) 0 1px,transparent 1px 3px);
 }
 
@@ -330,4 +331,73 @@ body.motion .card.in:hover{transform:translateY(-3px)}
   .cue,.drag-hint{display:none}
   .caption{opacity:1; transform:translate(-50%,0)}
   .cue-arrow{animation:none}
+}
+
+/* ── Left-hand picker: swap the scene video ────────────────── */
+.picker{
+  position:absolute; left:28px; top:50%; transform:translateY(-50%); z-index:5;
+  width:132px; max-height:78vh; display:flex; flex-direction:column; gap:10px;
+  padding:14px 12px; border-radius:18px;
+  background:var(--glass); border:1px solid var(--edge);
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
+  box-shadow:var(--inner), var(--drop);
+}
+.picker[hidden]{display:none}
+.picker-label{
+  margin:0 0 2px; padding-left:2px; flex:none;
+  font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--dim);
+}
+.picker-list{
+  display:flex; flex-direction:column; gap:10px;
+  overflow-y:auto; overscroll-behavior:contain;
+  scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.25) transparent;
+}
+.picker-list::-webkit-scrollbar{width:3px}
+.picker-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25); border-radius:3px}
+
+.pick{
+  display:block; width:100%; padding:0; cursor:pointer; text-align:left;
+  color:inherit; font:inherit; background:none; border:0; border-radius:11px;
+  opacity:.62; transition:opacity .2s ease, transform .2s ease;
+}
+.pick:hover,.pick:focus-visible{opacity:1; transform:translateX(2px); outline:none}
+.pick.on{opacity:1}
+.pick-shot{
+  position:relative; display:block; aspect-ratio:16/9; overflow:hidden;
+  border-radius:11px; background:rgba(0,0,0,.6);
+  border:1px solid var(--edge); box-shadow:var(--inner);
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.pick-shot video{width:100%; height:100%; object-fit:cover}
+.pick:hover .pick-shot{border-color:var(--edge-hi)}
+.pick.on .pick-shot{
+  border-color:var(--white);
+  box-shadow:var(--inner), 0 0 0 1px rgba(255,255,255,.5), 0 0 22px rgba(255,255,255,.25);
+}
+.pick-name{
+  display:block; margin-top:6px; font-size:11px; line-height:1.35; color:var(--mid);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.pick.on .pick-name{color:var(--white)}
+
+/* brief dip while the new video's metadata loads */
+.scene-stage.swapping .scene-video{opacity:.25; transition:opacity .2s ease}
+.scene-video{transition:opacity .35s ease}
+
+@media (max-width:1180px){
+  .picker{left:16px; width:112px}
+}
+@media (max-width:860px){
+  /* below the stage, as a horizontal strip */
+  .picker{
+    position:absolute; left:16px; right:16px; top:auto; bottom:14px; transform:none;
+    width:auto; max-height:none; flex-direction:row; align-items:center; gap:8px;
+    padding:10px 12px; border-radius:14px;
+  }
+  .picker-label{display:none}
+  .picker-list{flex-direction:row; overflow-x:auto; overflow-y:hidden; width:100%}
+  .pick{width:92px; flex:none}
+  .pick-name{font-size:10px}
+  .caption{bottom:118px}
+  .cue{display:none}
 }

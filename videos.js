@@ -9,27 +9,50 @@
 
    ── Motion scene ──────────────────────────────────────────────
    Add `hero: true` to make a video the big scroll-driven scene at
-   the top of the page. (Without it, the first video is used.)
+   the top of the page. Only one video gets it — move the flag to
+   whichever product should lead. (Without it, the first file wins.)
 
    `chapters` drive that scene: `at` is a position from 0 to 1
    through the video — 0 is the first frame, 1 the last. Each one
    becomes a caption and a clickable tick on the right-hand rail.
    Edit the wording freely; the timings are what matter.
+
+   Order below = order on the page.
    ───────────────────────────────────────────────────────────── */
 const VIDEO_META = {
 
-  "hardisk.mp4": {
+  "Automotive_product_film_producti…_202609081523.mp4": {
     hero: true,
+    eyebrow: "Exploded View",
+    title: "Sedan — Full Vehicle",
+    desc: "A complete car separated into body, panels and rolling chassis, then rebuilt.",
+    notes: [
+      "Scroll the scene to drive the animation",
+      "Drag the car left or right to scrub by hand",
+      "Click any chapter on the rail to jump",
+    ],
+    // checked against the footage: panels release from ~2.5s, fully exploded
+    // by 5s, holds to ~6.4s, reassembles and is whole again by ~7.5s
+    chapters: [
+      { at: 0.00, title: "Detail",     text: "Opening on the headlamp — the finish before anything comes apart." },
+      { at: 0.11, title: "Reveal",     text: "The complete vehicle, three-quarter view." },
+      { at: 0.25, title: "Hood",       text: "The bonnet lifts and the first panels release from the body." },
+      { at: 0.37, title: "Panels",     text: "Front fascia, doors and wheels draw away from the shell." },
+      { at: 0.50, title: "Exploded",   text: "Body shell suspended above the rolling chassis, every layer clear." },
+      { at: 0.60, title: "Powertrain", text: "Engine, transmission, exhaust line and suspension on the platform." },
+      { at: 0.70, title: "Reassembly", text: "The shell settles back down and the panels close in." },
+      { at: 0.84, title: "Assembled",  text: "Whole again — finished car, exactly where it started." },
+    ],
+  },
+
+  "hardisk.mp4": {
     eyebrow: "Exploded View",
     title: "Hard Disk Drive",
     desc: "A 3.5-inch drive taken apart layer by layer, then put back together.",
     notes: [
-      "Scroll the scene to drive the animation",
-      "Drag the device left or right to scrub by hand",
-      "Click any chapter on the rail to jump",
+      "Move `hero: true` here to make this the scroll scene instead",
     ],
-    // timings checked against the footage: it holds fully exploded
-    // from about 4.2s to 7.2s, then collapses back and is sealed by 8.8s
+    // holds fully exploded from about 4.2s to 7.2s, sealed again by 8.8s
     chapters: [
       { at: 0.00, title: "Sealed",     text: "The drive as it ships — aluminium casing closed, SATA edge exposed." },
       { at: 0.14, title: "Cover",      text: "The screws release and the top cover lifts away from the chassis." },
