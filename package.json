@@ -7,6 +7,7 @@
     "dev": "node server.js",
     "start": "node server.js",
     "serve": "NO_RELOAD=1 NO_OPEN=1 node server.js",
+    "scrub": "node scripts/make-scrub.js",
     "check": "node scripts/check-videos.js"
   },
   "engines": {
