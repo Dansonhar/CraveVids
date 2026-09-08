@@ -1,6 +1,10 @@
 #!/bin/sh
-# Refuse any commit that reintroduces greyscale on the product footage.
-node "$(git rev-parse --show-toplevel)/scripts/no-monochrome.js" || {
-  echo "  commit refused."
-  exit 1
-}
+# 1. the product footage must keep its original colour
+# 2. asset links must carry a fresh content hash, so the live site can never
+#    serve a stale styles.css / app.js against a new index.html
+ROOT="$(git rev-parse --show-toplevel)"
+
+node "$ROOT/scripts/no-monochrome.js" || { echo "  commit refused."; exit 1; }
+
+node "$ROOT/scripts/stamp.js" || { echo "  commit refused: could not stamp assets."; exit 1; }
+git add "$ROOT/index.html"
