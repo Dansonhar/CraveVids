@@ -61,6 +61,39 @@ const VIDEO_META = {
     ],
   },
 
+  "smartwatch.mp4": {
+    eyebrow: "Exploded View",
+    title: "Smartwatch",
+    desc: "A smartwatch opened into display, logic board, battery, sensor back and crown, then closed again.",
+    // shot on a dark set; explode holds ~4.2-7.0s, back together by ~8.4s
+    chapters: [
+      { at: 0.00, title: "Crown",      text: "Opening macro on the digital crown and the case side button." },
+      { at: 0.14, title: "Whole",      text: "The finished watch, face lit, strap attached." },
+      { at: 0.28, title: "Display",    text: "The screen lifts away from the case and the internals appear." },
+      { at: 0.42, title: "Exploded",   text: "Display, logic board, battery, sensor back and crown, all apart." },
+      { at: 0.56, title: "Internals",  text: "Macro across the board, speaker and haptic engine inside the case." },
+      { at: 0.70, title: "Full stack", text: "The wide view again, every layer suspended in order." },
+      { at: 0.84, title: "Assembled",  text: "Closed back up — the finished watch." },
+    ],
+  },
+
+  "camera.mp4": {
+    eyebrow: "Exploded View",
+    title: "Mirrorless Camera",
+    desc: "A camera and its lens separated into optical groups, mount, sensor, boards and body shell.",
+    // bright studio set; fully exploded ~4.2s, macro on the sensor ~5.6s,
+    // reassembled by ~8.4s
+    chapters: [
+      { at: 0.00, title: "Front element", text: "Opening macro on the front of the lens, coatings catching the light." },
+      { at: 0.14, title: "Whole",         text: "The complete camera, lens mounted." },
+      { at: 0.28, title: "Lens",          text: "Hood and optical groups draw forward off the mount." },
+      { at: 0.42, title: "Exploded",      text: "Lens groups, mount, sensor, boards, screen and top plate all apart." },
+      { at: 0.56, title: "Sensor",        text: "Macro on the imaging sensor behind the last optical elements." },
+      { at: 0.70, title: "Full stack",    text: "Back to the wide view, the whole camera laid out in order." },
+      { at: 0.84, title: "Assembled",     text: "Everything draws back in — the finished camera." },
+    ],
+  },
+
   "sedan.mp4": {
     hero: true,
     eyebrow: "Exploded View",
