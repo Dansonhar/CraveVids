@@ -194,3 +194,33 @@
     if (e.key === "]" && entries.length) mount((active + 1) % entries.length);
   });
 })();
+
+/* ══════════════════════════════════════════════════════════════════
+   COLOUR LOCK — DO NOT REMOVE
+   The product footage plays in its original colour, always. Greyscale
+   and desaturation on video are banned in this project. The CSS rule
+   at the end of styles.css blocks it from stylesheets; this catches
+   the one thing !important cannot — an inline style set from script.
+   ══════════════════════════════════════════════════════════════════ */
+(() => {
+  const strip = v => {
+    if (v.style.filter && v.style.filter !== "none") v.style.filter = "none";
+    if (v.style.webkitFilter && v.style.webkitFilter !== "none") v.style.webkitFilter = "none";
+  };
+  const sweep = () => document.querySelectorAll("video").forEach(strip);
+
+  sweep();
+  // catch inline filters added later, on existing or newly inserted videos
+  new MutationObserver(muts => {
+    for (const m of muts) {
+      if (m.type === "attributes" && m.target.tagName === "VIDEO") strip(m.target);
+      else m.addedNodes.forEach(n => {
+        if (n.nodeType !== 1) return;
+        if (n.tagName === "VIDEO") strip(n);
+        else n.querySelectorAll?.("video").forEach(strip);
+      });
+    }
+  }).observe(document.documentElement, {
+    subtree: true, childList: true, attributes: true, attributeFilter: ["style"],
+  });
+})();
