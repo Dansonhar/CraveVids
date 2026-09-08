@@ -1,12 +1,10 @@
-/* CraveAsia Video Presentations — black & white, glassmorphism */
+/* CraveAsia Video Presentations — one screen, black & white, glassmorphism */
 :root{
-  --black:#000;
-  --white:#fff;
+  --black:#000; --white:#fff;
   --mid:rgba(255,255,255,.72);
   --dim:rgba(255,255,255,.46);
   --faint:rgba(255,255,255,.22);
 
-  /* glass */
   --glass:rgba(255,255,255,.055);
   --glass-hi:rgba(255,255,255,.10);
   --edge:rgba(255,255,255,.14);
@@ -18,386 +16,207 @@
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html,body{height:100%; overflow:hidden}          /* one page, nothing scrolls */
 body{
-  margin:0; min-height:100vh; background:var(--black); color:var(--white);
+  margin:0; background:var(--black); color:var(--white);
   font-family:var(--font); font-size:15px; line-height:1.55;
   -webkit-font-smoothing:antialiased;
 }
-/* light behind the glass — without this, frosting has nothing to blur */
-body::before{
-  content:""; position:fixed; inset:0; z-index:-2; pointer-events:none;
+body::before{                                     /* light for the glass to refract */
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
   background:
     radial-gradient(900px 620px at 12% -8%,  rgba(255,255,255,.16), transparent 60%),
     radial-gradient(760px 560px at 88% 6%,   rgba(255,255,255,.09), transparent 62%),
     radial-gradient(1100px 800px at 50% 108%,rgba(255,255,255,.07), transparent 60%);
 }
-/* fine grain so the large gradients don't band */
-body::after{
-  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.5;
+body::after{                                      /* grain, stops the gradients banding */
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
 }
-body.locked{overflow:hidden}
 img,video{display:block; max-width:100%}
-code{
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; color:var(--white);
-  background:var(--glass); border:1px solid var(--edge); border-radius:5px; padding:1px 6px;
-}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em; color:var(--white);
+  background:var(--glass); border:1px solid var(--edge); border-radius:5px; padding:1px 6px}
 .dim{color:var(--dim)}
 ::selection{background:var(--white); color:var(--black)}
 
-/* ── Glass primitive ───────────────────────────────────────── */
-.glass{
-  background:var(--glass);
-  border:1px solid var(--edge);
-  -webkit-backdrop-filter:var(--blur);
-  backdrop-filter:var(--blur);
-  box-shadow:var(--inner), var(--drop);
+/* ── Layout: header / scene / footer, exactly one viewport ──── */
+.app{
+  position:relative; z-index:1;
+  height:100dvh; display:grid; grid-template-rows:auto 1fr auto; overflow:hidden;
 }
 
-/* ── Top bar ───────────────────────────────────────────────── */
 .topbar{
-  position:sticky; top:0; z-index:20; display:flex; gap:16px;
-  align-items:center; justify-content:space-between;
-  padding:14px 28px;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:14px 26px; border-bottom:1px solid var(--edge);
   background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
-  border-bottom:1px solid var(--edge);
-  -webkit-backdrop-filter:saturate(0%) blur(26px);
-  backdrop-filter:saturate(0%) blur(26px);
+  -webkit-backdrop-filter:saturate(0%) blur(26px); backdrop-filter:saturate(0%) blur(26px);
   box-shadow:var(--inner);
 }
-.brand{display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit}
-.brand-mark{
-  display:grid; place-items:center; width:32px; height:32px; flex:none; font-size:11px;
-  background:var(--glass-hi); border:1px solid var(--edge); border-radius:9px;
-  box-shadow:var(--inner);
-}
+.brand{display:flex; align-items:center; gap:12px}
+.brand-mark{display:grid; place-items:center; width:32px; height:32px; flex:none; font-size:11px;
+  background:var(--glass-hi); border:1px solid var(--edge); border-radius:9px; box-shadow:var(--inner)}
 .brand-text{display:flex; flex-direction:column; line-height:1.2}
 .brand-name{font-weight:650; letter-spacing:-.01em; text-shadow:0 0 24px rgba(255,255,255,.35)}
 .brand-sub{font-size:11.5px; color:var(--dim); text-transform:uppercase; letter-spacing:.12em}
-#search{
-  width:min(280px,45vw); padding:9px 14px; font:inherit; font-size:13.5px;
-  color:var(--white); background:var(--glass); border:1px solid var(--edge);
-  border-radius:10px; outline:none; box-shadow:var(--inner);
-  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
-  transition:border-color .2s ease, background .2s ease;
-}
-#search::placeholder{color:var(--dim)}
-#search:focus{border-color:var(--edge-hi); background:var(--glass-hi)}
+.topbar-title{margin:0; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim)}
 
-/* ── Grid ──────────────────────────────────────────────────── */
-.wrap{max-width:1240px; margin:0 auto; padding:40px 28px 80px}
-.grid{display:grid; gap:22px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
-.card{
-  position:relative; display:block; width:100%; padding:0; text-align:left; cursor:pointer;
-  color:inherit; font:inherit; border-radius:16px; overflow:hidden;
-  background:var(--glass); border:1px solid var(--edge);
-  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
-  box-shadow:var(--inner), var(--drop);
-  transition:transform .22s ease, border-color .22s ease, background .22s ease, box-shadow .22s ease;
+.scene{
+  position:relative; min-height:0; overflow:hidden;
+  display:grid; align-items:center; gap:26px;
+  grid-template-columns:150px minmax(0,1fr) 290px;
+  padding:22px 26px;
 }
-.card:hover,.card:focus-visible{
-  transform:translateY(-3px); outline:none;
-  background:var(--glass-hi); border-color:var(--edge-hi);
-  box-shadow:var(--inner), 0 26px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06);
-}
-.shot{position:relative; aspect-ratio:16/9; background:rgba(0,0,0,.55); overflow:hidden}
-.shot video,.shot img{width:100%; height:100%; object-fit:cover}
-.shot::after{ /* glass sheen over the still */
-  content:""; position:absolute; inset:0; pointer-events:none;
-  background:linear-gradient(160deg,rgba(255,255,255,.14),transparent 42%);
-}
-.play{
-  position:absolute; inset:auto auto 12px 12px; z-index:1; display:grid; place-items:center;
-  width:38px; height:38px; font-size:12px; color:var(--white); border-radius:50%;
-  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.4);
-  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
-  box-shadow:var(--inner);
-  transition:background .2s ease, color .2s ease;
-}
-.card:hover .play{background:var(--white); color:var(--black)}
-.card-body{padding:15px 17px 17px; border-top:1px solid rgba(255,255,255,.08)}
-.card-title{margin:0; font-size:15.5px; font-weight:600; letter-spacing:-.01em;
-  text-shadow:0 0 20px rgba(255,255,255,.22)}
-.card-sub{margin:6px 0 0; font-size:13px; color:var(--mid);
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
-.card-file{margin:10px 0 0; font-size:11.5px; color:var(--faint)}
+.scene.is-empty{grid-template-columns:1fr; place-items:center}
 
-.empty{padding:64px 0; text-align:center; color:var(--dim)}
-.blank{
-  padding:88px 24px; text-align:center; border-radius:18px;
-  background:var(--glass); border:1px dashed var(--edge);
-  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
-  box-shadow:var(--inner);
-}
-.blank h1{margin:0 0 10px; font-size:25px; font-weight:600; letter-spacing:-.02em;
-  text-shadow:0 0 30px rgba(255,255,255,.3)}
-.blank p{margin:0 0 6px; color:var(--mid)}
-
-/* ── Footer ────────────────────────────────────────────────── */
-.foot{
-  display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
-  padding:20px 28px; font-size:12.5px; color:var(--dim);
-  border-top:1px solid var(--edge);
-  background:linear-gradient(0deg,rgba(255,255,255,.05),transparent);
-  -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px);
-}
-
-/* ── Player ────────────────────────────────────────────────── */
-.modal{position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:24px}
-.modal[hidden]{display:none}
-.modal-backdrop{
-  position:absolute; inset:0; background:rgba(0,0,0,.66);
-  -webkit-backdrop-filter:saturate(0%) blur(16px); backdrop-filter:saturate(0%) blur(16px);
-}
-.modal-panel{
-  position:relative; width:min(1000px,100%); max-height:92vh; overflow:auto; border-radius:20px;
-  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
-  border:1px solid var(--edge-hi);
-  -webkit-backdrop-filter:saturate(0%) blur(30px); backdrop-filter:saturate(0%) blur(30px);
-  box-shadow:var(--inner), 0 40px 100px rgba(0,0,0,.8);
-}
-.modal-close{
-  position:absolute; top:12px; right:12px; z-index:2; width:36px; height:36px;
-  font-size:20px; line-height:1; color:var(--white); cursor:pointer; border-radius:10px;
-  background:rgba(255,255,255,.10); border:1px solid var(--edge);
-  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
-  box-shadow:var(--inner); transition:background .2s ease, color .2s ease;
-}
-.modal-close:hover{background:var(--white); color:var(--black)}
-.stage{background:rgba(0,0,0,.7); aspect-ratio:16/9; border-radius:20px 20px 0 0; overflow:hidden}
-.stage video{width:100%; height:100%; object-fit:contain; background:transparent}
-.modal-meta{padding:22px 26px 8px; border-top:1px solid rgba(255,255,255,.10)}
-.modal-meta h2{margin:0; font-size:21px; font-weight:650; letter-spacing:-.02em;
-  text-shadow:0 0 30px rgba(255,255,255,.3)}
-.modal-desc{margin:9px 0 0; color:var(--mid); max-width:70ch}
-.notes{margin:15px 0 0; padding:0; list-style:none; display:grid; gap:7px}
-.notes li{position:relative; padding-left:16px; font-size:13.5px; color:var(--mid)}
-.notes li::before{content:""; position:absolute; left:0; top:.62em; width:6px; height:1px; background:var(--dim)}
-.modal-nav{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 26px 22px}
-.modal-nav button{
-  padding:9px 16px; font:inherit; font-size:13px; color:var(--white); cursor:pointer;
-  background:var(--glass); border:1px solid var(--edge); border-radius:10px;
-  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
-  box-shadow:var(--inner); transition:background .2s ease, color .2s ease, border-color .2s ease;
-}
-.modal-nav button:hover{background:var(--white); color:var(--black); border-color:var(--white)}
-.pos{font-size:12.5px; color:var(--dim); letter-spacing:.04em}
-
-/* ── Fallbacks ─────────────────────────────────────────────── */
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  .topbar,.card,.modal-panel,.blank,.foot{background:rgba(20,20,20,.94)}
-  .modal-backdrop{background:rgba(0,0,0,.94)}
-}
-@media (max-width:640px){
-  .topbar{padding:12px 16px}
-  .wrap{padding:26px 16px 60px}
-  .foot{padding:18px 16px}
-  .modal{padding:0}
-  .modal-panel{max-height:100vh; border:0; border-radius:0}
-  .stage{border-radius:0}
-}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-
-/* ═══════════════════════════════════════════════════════════════
-   MOTION SCENE — the pinned, scroll-driven exploded view
-   .scene gets its height from app.js (300–700vh); .scene-pin is the
-   sticky screen that stays put while that height scrolls past.
-   ═══════════════════════════════════════════════════════════════ */
-.scene{position:relative; z-index:1}
-.scene[hidden]{display:none}
-.scene-pin{
-  position:sticky; top:0; height:100vh; overflow:hidden;
-  display:grid; place-items:center; padding:96px 28px 120px;
-}
+/* ── Centre column: the moving device ───────────────────────── */
+.stage-col{min-width:0; display:flex; flex-direction:column; gap:14px; align-items:center}
 
 .scene-stage{
-  position:relative; z-index:1; width:min(1080px,92vw); aspect-ratio:16/9;
-  max-height:72vh; border-radius:22px; overflow:hidden;
+  position:relative; width:100%; flex:1 1 auto; min-height:0;
+  border-radius:22px; overflow:hidden;
   background:rgba(255,255,255,.03); border:1px solid var(--edge);
   box-shadow:var(--inner), 0 50px 120px rgba(0,0,0,.85);
-  transform:perspective(1400px);
-  will-change:transform; touch-action:pan-y; cursor:grab;
+  transform:perspective(1500px); transform-style:preserve-3d;
+  will-change:transform; touch-action:none; cursor:grab;
 }
 .scene-stage.dragging{cursor:grabbing}
-/* No filter here on purpose: the footage must show its original colour. */
-.scene-video{width:100%; height:100%; object-fit:cover}
+.scene-video{width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.06);
+  transition:opacity .35s ease}
+.scene-stage.swapping .scene-video{opacity:.2; transition:opacity .2s ease}
 
-/* soft light that swells through the middle of the scroll */
 .scene-glow{
   position:absolute; inset:-22% -12%; z-index:0; pointer-events:none; opacity:.35;
   background:radial-gradient(58% 58% at 50% 50%, rgba(255,255,255,.30), transparent 70%);
   filter:blur(46px); transition:opacity .25s linear;
 }
-/* fine scanlines over the glass */
 .scene-scan{
-  position:absolute; inset:0; z-index:2; pointer-events:none; opacity:0;
+  position:absolute; inset:0; z-index:2; pointer-events:none; opacity:.35; mix-blend-mode:overlay;
   background:repeating-linear-gradient(180deg,rgba(255,255,255,.07) 0 1px,transparent 1px 3px);
 }
 
-.scene-head{
-  position:absolute; top:96px; left:0; right:0; z-index:3;
-  text-align:center; pointer-events:none; padding:0 28px;
+.stage-toggle{
+  position:absolute; left:16px; bottom:16px; z-index:3;
+  display:grid; place-items:center; width:42px; height:42px; padding:0; cursor:pointer;
+  border-radius:50%; color:var(--white);
+  background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.4);
+  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); box-shadow:var(--inner);
+  opacity:0; transform:translateY(6px); transition:opacity .2s ease, transform .2s ease, background .2s ease;
 }
-.scene-eyebrow{
-  margin:0 0 8px; font-size:11px; letter-spacing:.34em; text-transform:uppercase; color:var(--dim);
-}
-.scene-title{
-  margin:0; font-size:clamp(30px,5.2vw,62px); font-weight:650; letter-spacing:-.03em; line-height:1.02;
-  text-shadow:0 0 60px rgba(255,255,255,.35);
-}
+.scene-stage:hover .stage-toggle,.stage-toggle:focus-visible{opacity:1; transform:none}
+.stage-toggle:hover{background:var(--white); color:var(--black)}
+.ico-pause,.ico-play{display:block}
+.ico-pause{width:11px; height:13px; border-left:3px solid currentColor; border-right:3px solid currentColor}
+.ico-play{width:0; height:0; margin-left:3px;
+  border-left:12px solid currentColor; border-top:7px solid transparent; border-bottom:7px solid transparent}
 
-/* ── Caption ───────────────────────────────────────────────── */
-.caption{
-  position:absolute; left:50%; bottom:52px; z-index:4;
-  display:flex; gap:14px; align-items:flex-start;
-  width:min(560px,88vw); padding:16px 20px; border-radius:16px;
-  background:var(--glass); border:1px solid var(--edge);
-  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
-  box-shadow:var(--inner), var(--drop);
-  transform:translate(-50%,14px); opacity:0; transition:opacity .35s ease, transform .35s ease;
-}
-.caption.on{opacity:1; transform:translate(-50%,0)}
-.caption-idx{
-  flex:none; font-size:11.5px; letter-spacing:.16em; color:var(--dim);
-  padding-top:3px; font-variant-numeric:tabular-nums;
-}
-.caption-title{margin:0; font-size:14.5px; font-weight:600; letter-spacing:-.01em}
-.caption-text{margin:4px 0 0; font-size:13px; line-height:1.5; color:var(--mid)}
-
-/* ── Progress rail ─────────────────────────────────────────── */
-.rail{position:absolute; top:50%; right:34px; z-index:4; transform:translateY(-50%); display:flex; gap:12px}
-.rail[hidden]{display:none}
-.rail-line{position:relative; width:2px; height:min(360px,46vh); background:rgba(255,255,255,.14); border-radius:2px}
-.rail-fill{position:absolute; top:0; left:0; width:100%; height:0; background:var(--white);
+/* ── Timeline ───────────────────────────────────────────────── */
+.track{position:relative; width:100%; flex:none; padding-top:4px; cursor:pointer}
+.track[hidden]{display:none}
+.track-line{position:relative; height:2px; background:rgba(255,255,255,.14); border-radius:2px}
+.track-fill{display:block; height:100%; width:0; background:var(--white);
   border-radius:2px; box-shadow:0 0 14px rgba(255,255,255,.6)}
-.rail-ticks{position:relative; width:0}
-.rail-tick{
-  position:absolute; left:0; transform:translateY(-50%);
-  padding:0; font:inherit; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--faint); background:none; border:0; cursor:pointer; white-space:nowrap;
-  transition:color .2s ease, opacity .2s ease;
+.track-ticks{position:relative; height:26px}
+.tick{
+  position:absolute; top:0; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  padding:0; font:inherit; background:none; border:0; cursor:pointer; color:var(--faint);
+  transition:color .2s ease;
 }
-.rail-tick::before{
-  content:""; position:absolute; left:-14px; top:50%; width:6px; height:1px;
-  background:currentColor; transform:translateY(-50%);
-}
-.rail-tick:hover{color:var(--mid)}
-.rail-tick.on{color:var(--white); text-shadow:0 0 18px rgba(255,255,255,.6)}
+.tick-dot{width:5px; height:5px; border-radius:50%; background:currentColor; margin-top:-9px}
+.tick-name{font-size:10px; letter-spacing:.12em; text-transform:uppercase; white-space:nowrap}
+.tick:hover{color:var(--mid)}
+.tick.on{color:var(--white); text-shadow:0 0 18px rgba(255,255,255,.6)}
 
-/* ── Scroll cue + drag hint ────────────────────────────────── */
-.cue{
-  position:absolute; bottom:26px; left:50%; transform:translateX(-50%); z-index:3;
-  display:flex; align-items:center; gap:10px; pointer-events:none;
-  font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--dim);
-  transition:opacity .2s linear;
-}
-.cue-arrow{width:1px; height:26px; background:linear-gradient(180deg,var(--dim),transparent); animation:cue 1.9s ease-in-out infinite}
-@keyframes cue{0%,100%{transform:translateY(0); opacity:.9} 50%{transform:translateY(6px); opacity:.35}}
-.drag-hint{
-  position:absolute; bottom:26px; right:34px; z-index:3; margin:0; pointer-events:none;
-  font-size:11px; letter-spacing:.14em; color:var(--faint);
-}
+.scene-foot{width:100%; display:flex; align-items:baseline; justify-content:space-between; gap:18px; flex:none}
+.scene-title{margin:0; font-size:clamp(20px,2.6vw,34px); font-weight:650; letter-spacing:-.025em;
+  text-shadow:0 0 40px rgba(255,255,255,.3)}
+.hint{margin:0; font-size:11px; letter-spacing:.1em; color:var(--faint); white-space:nowrap}
 
-/* ── Lead-in above the grid ────────────────────────────────── */
-.lead{max-width:1240px; margin:0 auto; padding:96px 28px 0; position:relative; z-index:1}
-.lead[hidden]{display:none}
-.lead-kicker{margin:0 0 10px; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim)}
-.lead-title{margin:0; font-size:clamp(24px,3.4vw,38px); font-weight:650; letter-spacing:-.025em;
-  text-shadow:0 0 40px rgba(255,255,255,.25)}
-.lead + .wrap{padding-top:34px}
-
-/* everything below the pinned scene rides above it */
-.wrap,.foot{position:relative; z-index:1; background:var(--black)}
-
-/* ── Card reveal (only when app.js enables motion) ─────────── */
-body.motion .card{opacity:0; transform:translateY(20px)}
-body.motion .card.in{opacity:1; transform:none;
-  transition:opacity .55s ease, transform .55s cubic-bezier(.22,.68,.35,1), border-color .22s ease, background .22s ease}
-body.motion .card.in:hover{transform:translateY(-3px)}
-
-@media (max-width:860px){
-  .rail{right:16px}
-  .rail-tick{font-size:0}          /* ticks only, labels would crowd */
-  .rail-tick::before{left:-12px; width:8px}
-  .drag-hint{display:none}
-  .scene-head{top:76px}
-  .scene-pin{padding:76px 16px 96px}
-  .caption{bottom:76px; padding:14px 16px}
-  .lead{padding:64px 16px 0}
-}
-@media (prefers-reduced-motion:reduce){
-  .scene-pin{position:relative; height:auto; padding:56px 28px}
-  .cue,.drag-hint{display:none}
-  .caption{opacity:1; transform:translate(-50%,0)}
-  .cue-arrow{animation:none}
-}
-
-/* ── Left-hand picker: swap the scene video ────────────────── */
+/* ── Left rail: pick a device ───────────────────────────────── */
 .picker{
-  position:absolute; left:28px; top:50%; transform:translateY(-50%); z-index:5;
-  width:132px; max-height:78vh; display:flex; flex-direction:column; gap:10px;
+  align-self:center; max-height:100%; display:flex; flex-direction:column; gap:10px;
   padding:14px 12px; border-radius:18px;
   background:var(--glass); border:1px solid var(--edge);
   -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
   box-shadow:var(--inner), var(--drop);
 }
 .picker[hidden]{display:none}
-.picker-label{
-  margin:0 0 2px; padding-left:2px; flex:none;
-  font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--dim);
-}
-.picker-list{
-  display:flex; flex-direction:column; gap:10px;
-  overflow-y:auto; overscroll-behavior:contain;
-  scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.25) transparent;
-}
+.picker-label{margin:0 0 2px; padding-left:2px; flex:none;
+  font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--dim)}
+.picker-list{display:flex; flex-direction:column; gap:10px; overflow-y:auto; overscroll-behavior:contain;
+  scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.25) transparent}
 .picker-list::-webkit-scrollbar{width:3px}
 .picker-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25); border-radius:3px}
 
-.pick{
-  display:block; width:100%; padding:0; cursor:pointer; text-align:left;
-  color:inherit; font:inherit; background:none; border:0; border-radius:11px;
-  opacity:.62; transition:opacity .2s ease, transform .2s ease;
-}
+.pick{display:block; width:100%; padding:0; cursor:pointer; text-align:left; color:inherit; font:inherit;
+  background:none; border:0; border-radius:11px; opacity:.62;
+  transition:opacity .2s ease, transform .2s ease}
 .pick:hover,.pick:focus-visible{opacity:1; transform:translateX(2px); outline:none}
 .pick.on{opacity:1}
-.pick-shot{
-  position:relative; display:block; aspect-ratio:16/9; overflow:hidden;
-  border-radius:11px; background:rgba(0,0,0,.6);
-  border:1px solid var(--edge); box-shadow:var(--inner);
-  transition:border-color .2s ease, box-shadow .2s ease;
-}
-.pick-shot video{width:100%; height:100%; object-fit:cover}
+.pick-shot{position:relative; display:block; aspect-ratio:16/9; overflow:hidden; border-radius:11px;
+  background:rgba(0,0,0,.6); border:1px solid var(--edge); box-shadow:var(--inner);
+  transition:border-color .2s ease, box-shadow .2s ease}
+.pick-shot video{width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.05)}
 .pick:hover .pick-shot{border-color:var(--edge-hi)}
-.pick.on .pick-shot{
-  border-color:var(--white);
-  box-shadow:var(--inner), 0 0 0 1px rgba(255,255,255,.5), 0 0 22px rgba(255,255,255,.25);
-}
-.pick-name{
-  display:block; margin-top:6px; font-size:11px; line-height:1.35; color:var(--mid);
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-}
+.pick.on .pick-shot{border-color:var(--white);
+  box-shadow:var(--inner), 0 0 0 1px rgba(255,255,255,.5), 0 0 22px rgba(255,255,255,.25)}
+.pick-name{display:block; margin-top:6px; font-size:11px; line-height:1.35; color:var(--mid);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .pick.on .pick-name{color:var(--white)}
 
-/* brief dip while the new video's metadata loads */
-.scene-stage.swapping .scene-video{opacity:.25; transition:opacity .2s ease}
-.scene-video{transition:opacity .35s ease}
-
-@media (max-width:1180px){
-  .picker{left:16px; width:112px}
+/* ── Right: live chapter ────────────────────────────────────── */
+.caption{
+  align-self:center; padding:20px 22px; border-radius:18px;
+  background:var(--glass); border:1px solid var(--edge);
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
+  box-shadow:var(--inner), var(--drop);
+  opacity:0; transform:translateX(10px); transition:opacity .35s ease, transform .35s ease;
 }
-@media (max-width:860px){
-  /* below the stage, as a horizontal strip */
-  .picker{
-    position:absolute; left:16px; right:16px; top:auto; bottom:14px; transform:none;
-    width:auto; max-height:none; flex-direction:row; align-items:center; gap:8px;
-    padding:10px 12px; border-radius:14px;
-  }
+.caption.on{opacity:1; transform:none}
+.caption-idx{display:block; font-size:11px; letter-spacing:.2em; color:var(--dim);
+  font-variant-numeric:tabular-nums}
+.caption-title{margin:10px 0 0; font-size:19px; font-weight:650; letter-spacing:-.02em;
+  text-shadow:0 0 26px rgba(255,255,255,.3)}
+.caption-text{margin:8px 0 0; font-size:13.5px; line-height:1.55; color:var(--mid)}
+.caption-desc{margin:16px 0 0; padding-top:14px; font-size:12px; line-height:1.5; color:var(--faint);
+  border-top:1px solid rgba(255,255,255,.1)}
+.caption-desc:empty{display:none}
+
+/* ── Empty state ────────────────────────────────────────────── */
+.blank{grid-column:1/-1; justify-self:center; text-align:center; padding:56px 40px; border-radius:18px;
+  background:var(--glass); border:1px dashed var(--edge);
+  -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--inner)}
+.blank[hidden]{display:none}
+.blank h2{margin:0 0 10px; font-size:23px; font-weight:600; letter-spacing:-.02em}
+.blank p{margin:0; color:var(--mid)}
+
+.foot{display:flex; justify-content:space-between; gap:16px; padding:12px 26px;
+  font-size:12px; color:var(--dim); border-top:1px solid var(--edge);
+  background:linear-gradient(0deg,rgba(255,255,255,.05),transparent);
+  -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px)}
+
+/* ── Fallbacks & narrow screens ─────────────────────────────── */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .topbar,.picker,.caption,.blank,.foot{background:rgba(20,20,20,.94)}
+}
+@media (max-width:1180px){
+  .scene{grid-template-columns:128px minmax(0,1fr) 250px; gap:18px; padding:18px}
+}
+@media (max-width:900px){
+  .scene{grid-template-columns:112px minmax(0,1fr); gap:14px}
+  .caption{display:none}                   /* chapter lives on the timeline instead */
+  .hint{display:none}
+}
+@media (max-width:640px){
+  .topbar-title{display:none}
+  .scene{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto; padding:14px}
+  .picker{flex-direction:row; align-items:center; padding:10px; max-height:none}
   .picker-label{display:none}
   .picker-list{flex-direction:row; overflow-x:auto; overflow-y:hidden; width:100%}
-  .pick{width:92px; flex:none}
-  .pick-name{font-size:10px}
-  .caption{bottom:118px}
-  .cue{display:none}
+  .pick{width:88px; flex:none}
+  .tick-name{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  .stage-toggle{opacity:1; transform:none}
 }

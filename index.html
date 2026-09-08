@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CraveAsia Video Presentations</title>
 <meta name="description" content="Video presentations by CraveAsia.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><path d='M13 10l10 6-10 6z' fill='%23fff'/></svg>">
@@ -10,101 +10,70 @@
 </head>
 <body>
 
-<header class="topbar">
-  <a class="brand" href="./">
-    <span class="brand-mark" aria-hidden="true">&#9654;</span>
-    <span class="brand-text">
-      <span class="brand-name">CraveAsia</span>
-      <span class="brand-sub">Video Presentations</span>
-    </span>
-  </a>
-  <input id="search" type="search" placeholder="Search" aria-label="Search videos" autocomplete="off">
-</header>
+<div class="app">
 
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">&#9654;</span>
+      <span class="brand-text">
+        <span class="brand-name">CraveAsia</span>
+        <span class="brand-sub">Video Presentations</span>
+      </span>
+    </div>
+    <p class="topbar-title" id="scene-eyebrow">Exploded View</p>
+  </header>
 
-<!-- ── Motion scene: scroll drives the exploded view ─────────────── -->
-<section class="scene" id="scene" hidden>
-  <div class="scene-pin">
-    <!-- left-hand picker: tap a thumbnail to swap the scene video -->
+  <main class="scene" id="scene">
+
+    <!-- left: pick a device -->
     <aside class="picker" id="picker" hidden aria-label="Choose a video">
-      <p class="picker-label">Videos</p>
+      <p class="picker-label">Devices</p>
       <div class="picker-list" id="picker-list"></div>
     </aside>
 
-    <div class="scene-stage" id="stage">
-      <div class="scene-glow" aria-hidden="true"></div>
-      <video id="scrub" class="scene-video" muted playsinline preload="auto"
-             disablepictureinpicture aria-label="Exploded view — scroll to drive"></video>
-      <div class="scene-scan" aria-hidden="true"></div>
-    </div>
+    <!-- centre: the moving device -->
+    <div class="stage-col">
+      <div class="scene-stage" id="stage">
+        <div class="scene-glow" aria-hidden="true"></div>
+        <video id="scrub" class="scene-video" muted loop playsinline preload="auto"
+               disablepictureinpicture aria-label="Exploded view"></video>
+        <div class="scene-scan" aria-hidden="true"></div>
+        <button class="stage-toggle" id="toggle" aria-label="Pause">
+          <span class="ico-pause" aria-hidden="true"></span>
+        </button>
+      </div>
 
-    <div class="scene-head">
-      <p class="scene-eyebrow" id="scene-eyebrow">Exploded View</p>
-      <h1 class="scene-title" id="scene-title"></h1>
-    </div>
+      <div class="track" id="track" aria-label="Timeline">
+        <div class="track-line"><span class="track-fill" id="track-fill"></span></div>
+        <div class="track-ticks" id="track-ticks"></div>
+      </div>
 
-    <!-- chapter caption, swapped as you scroll -->
-    <div class="caption" id="caption">
-      <span class="caption-idx" id="cap-idx"></span>
-      <div>
-        <p class="caption-title" id="cap-title"></p>
-        <p class="caption-text" id="cap-text"></p>
+      <div class="scene-foot">
+        <h1 class="scene-title" id="scene-title"></h1>
+        <p class="hint">Drag the device to scrub &middot; click to pause</p>
       </div>
     </div>
 
-    <!-- progress rail with clickable chapter ticks -->
-    <div class="rail" id="rail" aria-hidden="true">
-      <div class="rail-line"><span class="rail-fill" id="rail-fill"></span></div>
-      <div class="rail-ticks" id="rail-ticks"></div>
-    </div>
+    <!-- right: chapter, live -->
+    <aside class="caption" id="caption">
+      <span class="caption-idx" id="cap-idx"></span>
+      <p class="caption-title" id="cap-title"></p>
+      <p class="caption-text" id="cap-text"></p>
+      <p class="caption-desc" id="cap-desc"></p>
+    </aside>
 
-    <div class="cue" id="cue">
-      <span class="cue-text">Scroll to explode</span>
-      <span class="cue-arrow" aria-hidden="true"></span>
-    </div>
+    <section class="blank" id="blank" hidden>
+      <h2>No videos yet</h2>
+      <p>Drop your files into the <code>videos/</code> folder, then reload.</p>
+    </section>
 
-    <p class="drag-hint" id="drag-hint">drag the device to scrub</p>
-  </div>
-</section>
+  </main>
 
-<section class="lead" id="lead" hidden>
-  <p class="lead-kicker">All presentations</p>
-  <h2 class="lead-title">Every video, one place.</h2>
-</section>
+  <footer class="foot">
+    <span>CraveAsia</span>
+    <span class="dim" id="count"></span>
+  </footer>
 
-<main class="wrap">
-  <div class="grid" id="grid"></div>
-
-  <p class="empty" id="empty" hidden>Nothing matches that search.</p>
-
-  <section class="blank" id="blank" hidden>
-    <h1>No videos yet</h1>
-    <p>Drop your files into the <code>videos/</code> folder, then reload this page.</p>
-    <p class="dim">.mp4 · .webm · .mov · .m4v</p>
-  </section>
-</main>
-
-<footer class="foot">
-  <span>CraveAsia</span>
-  <span class="dim" id="count"></span>
-</footer>
-
-<div class="modal" id="modal" hidden>
-  <div class="modal-backdrop" data-close></div>
-  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="m-title">
-    <button class="modal-close" data-close aria-label="Close">&times;</button>
-    <div class="stage"><video id="player" playsinline controls preload="metadata"></video></div>
-    <div class="modal-meta">
-      <h2 id="m-title"></h2>
-      <p class="modal-desc" id="m-desc"></p>
-      <ul class="notes" id="m-notes"></ul>
-    </div>
-    <div class="modal-nav">
-      <button id="prev">&larr; Previous</button>
-      <span class="pos" id="m-pos"></span>
-      <button id="next">Next &rarr;</button>
-    </div>
-  </div>
 </div>
 
 <script src="videos.js"></script>

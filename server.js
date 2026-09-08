@@ -13,6 +13,7 @@ const ROOT = __dirname;
 const PORT = Number(process.env.PORT) || 5173;
 const LIVE = process.env.NO_RELOAD !== "1";
 const OPEN = process.env.NO_OPEN !== "1";
+const PIDFILE = path.join(__dirname, ".server.pid");
 
 const MIME = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -148,15 +149,34 @@ function listen(port, attemptsLeft) {
   const onListening = () => {
     server.removeListener("error", onError);
     const url = `http://localhost:${port}`;
+    // record who we are, so `npm stop` targets THIS process and nothing else
+    try { fs.writeFileSync(PIDFILE, JSON.stringify({ pid: process.pid, port })); } catch {}
     console.log(`\n  CraveAsia Video Presentations`);
     console.log(`  \u279c  ${url}`);
-    console.log(`  ${LIVE ? "live reload on" : "live reload off"} \u00b7 Ctrl+C to stop\n`);
+    console.log(`  ${LIVE ? "live reload on" : "live reload off"} \u00b7 pid ${process.pid} \u00b7 Ctrl+C to stop\n`);
     if (OPEN && process.platform === "darwin") execFile("open", [url], () => {});
   };
   server.once("error", onError);
   server.once("listening", onListening);
   server.listen(port);
 }
+
+/* Say plainly why the server stopped. A bare "zsh: terminated" means something
+   outside this process sent it a signal — another terminal, a stray pkill, or a
+   tool doing cleanup — not a crash in the page or the server itself. */
+const bye = (signal, note) => {
+  try { fs.unlinkSync(PIDFILE); } catch {}
+  console.log(`\n  Server stopped (${signal})${note ? " \u2014 " + note : ""}.\n`);
+  process.exit(0);
+};
+process.on("SIGINT",  () => bye("Ctrl+C"));
+process.on("SIGTERM", () => bye("SIGTERM", "something else asked this process to quit"));
+process.on("SIGHUP",  () => bye("SIGHUP", "the terminal that launched it closed"));
+process.on("uncaughtException", err => {
+  console.error(`\n  Server error: ${err && err.message}\n`);
+  try { fs.unlinkSync(PIDFILE); } catch {}
+  process.exit(1);
+});
 
 // keep scroll-scrub copies current before the browser asks for them
 scrub.main({ quiet: true }).catch(() => {});

@@ -2,13 +2,15 @@
   "name": "craveasia-video-presentations",
   "version": "1.0.0",
   "private": true,
-  "description": "CraveAsia Video Presentations — a black-and-white page that plays the videos in videos/.",
+  "description": "CraveAsia Video Presentations \u2014 a black-and-white page that plays the videos in videos/.",
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
     "serve": "NO_RELOAD=1 NO_OPEN=1 node server.js",
     "scrub": "node scripts/make-scrub.js",
-    "check": "node scripts/check-videos.js"
+    "check": "node scripts/check-videos.js",
+    "stop": "node scripts/stop.js",
+    "restart": "node scripts/stop.js && node server.js"
   },
   "engines": {
     "node": ">=16"
