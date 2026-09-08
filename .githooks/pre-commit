@@ -1,0 +1,6 @@
+#!/bin/sh
+# Refuse any commit that reintroduces greyscale on the product footage.
+node "$(git rev-parse --show-toplevel)/scripts/no-monochrome.js" || {
+  echo "  commit refused."
+  exit 1
+}

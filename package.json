@@ -10,7 +10,8 @@
     "scrub": "node scripts/make-scrub.js",
     "check": "node scripts/check-videos.js",
     "stop": "node scripts/stop.js",
-    "restart": "node scripts/stop.js && node server.js"
+    "restart": "node scripts/stop.js && node server.js",
+    "guard": "node scripts/no-monochrome.js"
   },
   "engines": {
     "node": ">=16"
