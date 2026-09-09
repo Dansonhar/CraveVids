@@ -21,6 +21,32 @@
    ───────────────────────────────────────────────────────────── */
 const VIDEO_META = {
 
+  "craveproductviu.mp4": {
+    hero: true,
+    eyebrow: "Crave ProductViu\u2122",
+    title: "Crave ProductViu\u2122",
+    desc: "The reel: product films Crave has made — real installs, studio renders and exploded views across kiosks, engines, fibre, peripherals and enclosures.",
+    notes: [
+      "A showreel rather than one product, so the chapters are its segments",
+    ],
+    // 72.6s reel. Chapter marks are the actual scene cuts, detected from the
+    // footage rather than guessed.
+    chapters: [
+      { at: 0.000, title: "Kiosk",         text: "A self-service kiosk going in on site — the real install, not a render." },
+      { at: 0.110, title: "Engine",        text: "A complete engine assembly, every belt and pulley in place." },
+      { at: 0.220, title: "Engine apart",  text: "The same engine opened out — block, crank, manifold, ancillaries." },
+      { at: 0.331, title: "Fibre",         text: "Cross-section of a fibre trunk cable, the core bundles exposed." },
+      { at: 0.441, title: "Rugged device", text: "A field device on the bench, shell and boards separated." },
+      { at: 0.526, title: "Machinery",     text: "A conveyor line rendered clean for a spec sheet." },
+      { at: 0.580, title: "Peripherals",   text: "Keyboards and laptop shot as a working desk." },
+      { at: 0.629, title: "Mouse apart",   text: "A mouse exploded into shell, switches, board and sensor." },
+      { at: 0.740, title: "Inspection",    text: "A fibre connector under the microscope." },
+      { at: 0.850, title: "Transceivers",  text: "SFP modules, top and bottom, on a dark bench." },
+      { at: 0.923, title: "Enclosure",     text: "A sealed outdoor enclosure in the field." },
+      { at: 0.976, title: "Wall unit",     text: "A wall-mounted unit, installed and running." },
+    ],
+  },
+
   "washingmachine.mp4": {
     eyebrow: "Exploded View",
     title: "Washing Machine",
@@ -111,7 +137,6 @@ const VIDEO_META = {
   },
 
   "sedan.mp4": {
-    hero: true,
     eyebrow: "Exploded View",
     title: "Sedan — Full Vehicle",
     desc: "A complete car separated into body, panels and rolling chassis, then rebuilt.",

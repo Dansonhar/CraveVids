@@ -30,17 +30,31 @@ function stale(file) {
   return fs.statSync(out).mtimeMs < fs.statSync(src).mtimeMs;
 }
 
+// Seconds of video, or 0 if ffprobe cannot say.
+function seconds(file) {
+  const r = spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration",
+    "-of", "csv=p=0", path.join(SRC, file)], { encoding: "utf8" });
+  return r.status === 0 ? parseFloat(r.stdout) || 0 : 0;
+}
+
 function encode(file) {
   return new Promise(resolve => {
     const src = path.join(SRC, file);
     const out = path.join(OUT, file.replace(EXT, ".mp4"));
     const tmp = out + ".tmp.mp4";
+    // Short teardowns get a keyframe on EVERY frame — frame-exact scrubbing.
+    // Long clips would balloon (a 72s reel came out at 57MB that way), and they
+    // do not need it: the scroll maps a long clip so coarsely that one wheel
+    // tick moves more than a second. A keyframe every 6 frames (0.2s) is still
+    // far finer than the input, at a third of the size.
+    const long = seconds(file) > 20;
+    const gop = long ? "6" : "1";
     const args = [
       "-y", "-i", src,
       "-an",                                  // no audio — scrub copy is silent
       "-vf", "scale='min(1600,iw)':-2",       // cap width, keep aspect (even height)
       "-c:v", "libx264", "-preset", "veryfast", "-crf", "24",
-      "-g", "1", "-keyint_min", "1", "-sc_threshold", "0",  // every frame a keyframe
+      "-g", gop, "-keyint_min", gop, "-sc_threshold", "0",
       "-pix_fmt", "yuv420p",
       "-movflags", "+faststart",
       tmp,
